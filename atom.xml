@@ -2,11 +2,11 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://ca3tie1.github.io</id>
     <title>Castiel&apos;s Blog</title>
-    <updated>2020-03-21T16:46:09.049Z</updated>
+    <updated>2020-03-21T16:50:24.933Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://ca3tie1.github.io"/>
     <link rel="self" href="https://ca3tie1.github.io/atom.xml"/>
-    <subtitle>&lt;b&gt;&lt;font color=&quot;#FFFFFF&quot;&gt;一个不会中医的厨子不会是一个好黑客&lt;/font&gt;&lt;/b&gt;</subtitle>
+    <subtitle>&lt;b&gt;一个不会中医的厨子不会是一个好黑客&lt;/b&gt;</subtitle>
     <logo>https://ca3tie1.github.io/images/avatar.png</logo>
     <icon>https://ca3tie1.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, Castiel&apos;s Blog</rights>
