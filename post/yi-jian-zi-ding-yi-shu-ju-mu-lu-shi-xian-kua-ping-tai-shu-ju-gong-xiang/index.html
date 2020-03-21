@@ -1,0 +1,416 @@
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<title>蚁剑自定义数据目录实现跨平台数据共享 - Castiel&#39;s Blog</title>
+<link rel="shortcut icon" href="https://ca3tie1.github.io/favicon.ico">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.2.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css">
+<link rel="stylesheet" href="https://ca3tie1.github.io/media/css/tailwind.css">
+<link rel="stylesheet" href="https://ca3tie1.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="蚁剑自定义数据目录实现跨平台数据共享 - Castiel&#39;s Blog - Atom Feed" href="https://ca3tie1.github.io/atom.xml">
+
+    
+
+  <meta name="description" content="
+前言
+
+0x1
+0x2
+0x3
+
+更改数据库路径
+更改编码器同步
+
+
+结语
+
+
+Virink提供完美解决方案 感谢
+
+
+前言
+中国蚁剑是一款开源的跨平台网站管理工具，它主要面向于合法授权的渗透测试安全人员以及进行常规操作的网站管理员。任何..." />
+  <meta property="og:title" content="蚁剑自定义数据目录实现跨平台数据共享 - Castiel&#39;s Blog">
+  <meta property="og:description" content="
+前言
+
+0x1
+0x2
+0x3
+
+更改数据库路径
+更改编码器同步
+
+
+结语
+
+
+Virink提供完美解决方案 感谢
+
+
+前言
+中国蚁剑是一款开源的跨平台网站管理工具，它主要面向于合法授权的渗透测试安全人员以及进行常规操作的网站管理员。任何..." />
+  <meta property="og:type" content="articles">
+  <meta property="og:url" content="https://ca3tie1.github.io/post/yi-jian-zi-ding-yi-shu-ju-mu-lu-shi-xian-kua-ping-tai-shu-ju-gong-xiang/" />
+  <meta property="og:image" content="https://ca3tie1.github.io/images/avatar.png">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:width" content="1200">
+  <meta name="twitter:title" content="蚁剑自定义数据目录实现跨平台数据共享 - Castiel&#39;s Blog">
+  <meta name="twitter:description" content="
+前言
+
+0x1
+0x2
+0x3
+
+更改数据库路径
+更改编码器同步
+
+
+结语
+
+
+Virink提供完美解决方案 感谢
+
+
+前言
+中国蚁剑是一款开源的跨平台网站管理工具，它主要面向于合法授权的渗透测试安全人员以及进行常规操作的网站管理员。任何...">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="canonical" href="https://ca3tie1.github.io/post/yi-jian-zi-ding-yi-shu-ju-mu-lu-shi-xian-kua-ping-tai-shu-ju-gong-xiang/">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.css">
+ 
+  
+    <link rel="stylesheet" href="https://ca3tie1.github.io/media/css/prism-atom-dark.css">
+  
+
+  
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+  
+</head>
+
+<body>
+  <div class="antialiased flex flex-col min-h-screen" id="app">
+    <a href="https://ca3tie1.github.io" class="fixed top-0 left-0 mt-4 bg-black text-white dark:text-gray-700 dark:bg-yellow-50 dark:hover:bg-black dark:hover:text-white inline-flex p-2 pl-8 hover:text-gray-700 hover:bg-yellow-50 font-bold z-10 transition-fast animated fadeInLeft">
+      Castiel&#39;s Blog
+    </a>
+    <div class="max-w-4xl w-full mx-auto">
+      <div class="shadow-box bg-white dark:bg-gray-600 rounded-lg pt-32 md:pt-64 px-4 md:px-8 pb-8 animated fadeIn mb-8">
+        <h1 class="text-5xl font-semibold leading-normal pb-8 mb-8 border-b-8 border-gray-700">
+          蚁剑自定义数据目录实现跨平台数据共享
+        </h1>
+        
+        <div class="mb-8 flex flex-wrap">
+          <div class="text-gray-400 text-sm mr-4">2020-03-22 · 7 min read</div>
+          
+        </div>
+        <div class="markdown mb-8" v-pre>
+          <p><ul class="markdownIt-TOC">
+<li><a href="#%E5%89%8D%E8%A8%80">前言</a>
+<ul>
+<li><a href="#0x1">0x1</a></li>
+<li><a href="#0x2">0x2</a></li>
+<li><a href="#0x3">0x3</a>
+<ul>
+<li><a href="#%E6%9B%B4%E6%94%B9%E6%95%B0%E6%8D%AE%E5%BA%93%E8%B7%AF%E5%BE%84">更改数据库路径</a></li>
+<li><a href="#%E6%9B%B4%E6%94%B9%E7%BC%96%E7%A0%81%E5%99%A8%E5%90%8C%E6%AD%A5">更改编码器同步</a></li>
+</ul>
+</li>
+<li><a href="#%E7%BB%93%E8%AF%AD">结语</a></li>
+</ul>
+</li>
+<li><a href="#virink%E6%8F%90%E4%BE%9B%E5%AE%8C%E7%BE%8E%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88-%E6%84%9F%E8%B0%A2">Virink提供完美解决方案 感谢</a></li>
+</ul>
+</p>
+<h1 id="前言">前言</h1>
+<p>中国蚁剑是一款开源的跨平台网站管理工具，它主要面向于合法授权的渗透测试安全人员以及进行常规操作的网站管理员。任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！</p>
+<h2 id="0x1">0x1</h2>
+<p>蚁剑作为一款致敬菜刀的工具，可说青出于蓝而胜于蓝。菜刀在2016年更新过一个最新版本，可以实现自定义配置文件的方式来绕过WAF的功能，但实际测试和应用中发现还是存在不少bug。蚁剑这款工具在刚面世的时候有接触过，后来貌似因为一些政策性的原因貌似作者开发的一款实时上线的 XSS 盲打平台也开源并停止了更新，后来就没有关注了。直到最近在一些项目中遇到WAF，才想起来用蚁剑试试。蚁剑使用教程可以参考https://github.com/AntSwordProject/和官方文档https://doc.u0u.us/。</p>
+<h2 id="0x2">0x2</h2>
+<p>在实际渗透测试过程中我们往往会在不同的平台上使用蚁剑(如在windows和kali)，也有可能在不通的地方使用(如在宿主机和虚拟机中)。要想在不同的平台、不同的地方共享使用一个蚁剑的数据用copy方式拷来拷去比较麻烦，最简单的方式就是使用cloud同步蚁剑数据库以及一些相关数据。这里先需要找到蚁剑数据存储位置，在目前最新版本中蚁剑保存shell信息的数据库位于<code>antSword-master\antData\db.ant</code>中，是以json格式存储。<br>
+在<code>antSword-master\antData\</code>下还依次存放了临时文件目录<code>.temp</code>，缓存目录<code>cache</code>，编码器目录<code>encoders</code>，插件目录<code>plugins</code>，我们只需要把<code>antData</code>整个目录数据同步到云，然后在蚁剑中更改数据配置路径指向同步文件夹，这样就可以实现在异地共享使用同一个蚁剑数据了。这里我使用的是微软的OneDrive来实现文件同步，OneDrive可以实现异地实时同步，但缺点是已被墙，要使用请先翻墙（这里鄙视一下）或者使用其他的云同步系统。</p>
+<h2 id="0x3">0x3</h2>
+<h3 id="更改数据库路径">更改数据库路径</h3>
+<p>首先更改数据存储目录，在<code>antSword-master\modules\config.js</code> 文件<code>20</code> 行找到<code>this.basePath = path.join(process.env.AS_WORKDIR, 'antData')</code> 将<code>process.env.AS_WORKDIR</code>更改为OneDrive的路径，一般默认是<code>C:\Users\用户名\OneDrive\</code>  我这里是<code>C:\\Users\\Castiel\\OneDrive\\</code> 注意目录分隔符要使用两个''，如图所示<br>
+<img src="https://img-blog.csdnimg.cn/20191217102437700.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0NhM3RpZTE=,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述" loading="lazy"><br>
+然后我们再把<code>antSword-master\antData</code> 整个文件夹copy到<code>C:\Users\Castiel\OneDrive\</code> 下，然后在另外一台电脑上安装OneDrive，登录账户，你会发现<code>antData</code>目录会自动同步到该电脑上。最后copy蚁剑到该电脑上，同样更改<code>antSword-master\modules\config.js</code> 20行数据存储目录为当前电脑的OneDrive目录，然后重启蚁剑，这样完成了数据共享，在其中任意一个地方添加个shell，再去另外一地方重启蚁剑看看效果。</p>
+<h3 id="更改编码器同步">更改编码器同步</h3>
+<p>以上操作只能同步shell数据库和缓存等一些基本数据，实际测试编码器还不能同步，我们还需要更改编码器路径设置。找到<code>antSword-master\source\app.entry.js</code>文件<code>177</code>行和<code>232</code>行对应将<code>remote.process.env.AS_WORKDIR</code> 换成<code>C:\\Users\\Castiel\\OneDrive\\</code>。<br>
+然后再找到<code>antSword-master\source\modules\settings\encoders.js</code>文件中查找<code>remote.process.env.AS_WORKDIR</code> (共8处) 并全部替换成<code>C:\\Users\\Castiel\\OneDrive\\</code> 如此编码器也可以实现数据共享了。</p>
+<h2 id="结语">结语</h2>
+<p>在更改的变量 <code>process.env.AS_WORKDIR</code> 实际为AntSword-Loader配置的AntSword工作目录，该配置信息保存在AntSword-Loader目录下的<code>resources/.antSword.json</code>文件中，内容如下<code>{&quot;workdir&quot;:&quot;D:\\Soft\\AntSword\\antSword-master&quot;}</code>。由于AntSword-Loader并未开源，不知道<code>process.env.AS_WORKDIR</code> 中的<code>AS_WORKDIR</code>变量名是不是根据workdir键值名来定义的，若是如此的话我们可以在<code>resources/.antSword.json</code>中添加一个键(例如datadir)用于指定<code>antData</code>路径，然后在蚁剑中以<code>process.env.AS_DATADIR</code>的方式来调用，如此在AntSword-Loader中自定义路径，一蚁剑中替掉相应变量就方便多了。</p>
+<h1 id="virink提供完美解决方案-感谢">Virink提供完美解决方案 感谢</h1>
+<p>感谢<a href="https://www.virzz.com/">Virink</a>大神的指点，通过新增环境变量 AS_DATADIR 自定义数据目录路径，另外还需要多更改两个文件内容，如下：</p>
+<p><code>modules\config.js</code> 文件<code>20</code>行更改为<code>this.basePath = path.join(process.env.AS_DATADIR ? process.env.AS_DATADIR : process.env.AS_WORKDIR, 'antData');</code></p>
+<p><code>source\app.entry.js</code> 文件 <code>177</code>  <code>230</code>行 把<code>process.env.AS_WORKDIR</code> 改成 <code>remote.process.env.AS_DATADIR</code></p>
+<p><code>source\core\base.js</code> 文件 <code>77</code> 行 把<code>remote.process.env.AS_WORKDIR</code> 改成 <code>remote.process.env.AS_DATADIR</code></p>
+<p><code>source\modules\filemanager\index.js</code> 文件 <code>543</code> 行 把<code>remote.process.env.AS_WORKDIR</code> 改成 <code>remote.process.env.AS_DATADIR</code></p>
+<p><code>source\modules\settings\encoders.js</code> 文件中8处 <code>remote.process.env.AS_WORKDIR</code> 改成 <code>remote.process.env.AS_DATADIR</code></p>
+<p>改完以上后需要更改加载器源码，这里需要安装nodjes环境，然后使用npm全局安装asar模块，安装命令</p>
+<p><code>npm install -g asar</code></p>
+<p>然后来到蚁剑加载器<code>resources</code>目录下执行以下命令解压asar包</p>
+<p><code>asar e electron.asar electron</code></p>
+<p>解压完成后打开<code>resources\electron\browser\init.js</code> 在<code>138</code> 行添加如下代码：</p>
+<pre><code class="language-javascript">// 如果配置数据存储目录，则加载自定义的路径，否则使用工作目录
+  var AS_DATADIR = AS_CONFIG['datadir'];
+  if ((typeof AS_DATADIR === 'string') &amp;&amp; AS_DATADIR.length &gt; 0 &amp;&amp; fs.existsSync(AS_WORKDIR)) {
+    process.env.AS_DATADIR = AS_DATADIR;
+  } else {
+    process.env.AS_DATADIR = AS_WORKDIR;
+  }
+</code></pre>
+<p>如图：<br>
+<img src="https://img-blog.csdnimg.cn/20191217161529803.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0NhM3RpZTE=,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述" loading="lazy"><br>
+然后删除之前的<code>electron.asar</code>文件，执行命令从新打包：</p>
+<p><code>asar p electron electron.asar</code></p>
+<p>最后更改<code>resources\.antSword.json</code> 添加<code>datadir</code> 路径不含antData Windows注意目录分隔符为两个<code>\</code></p>
+<pre><code class="language-JSON">{
+    &quot;workdir&quot;: &quot;/path/to/src/&quot;,
+    &quot;datadir&quot;: &quot;/path/to/antData/&quot;
+}
+</code></pre>
+<p>Enjoy! 最后再次感谢作者开发如此好用的工具！感谢Virink，后续可能会上架该功能。有疑问欢迎来讨论：https://github.com/AntSwordProject/antSword/issues/237</p>
+
+        </div>
+        <!-- Share to Twitter, Weibo, Telegram -->
+        <div class="flex items-center">
+          <div class="mr-4 flex items-center">
+            <i class="ri-share-forward-line text-gray-500"></i>
+          </div>
+          <div class="px-4 cursor-pointer text-blue-500 hover:bg-blue-100 dark:hover:bg-gray-600 inline-flex" @click="shareToTwitter">
+            <i class="ri-twitter-line"></i>
+          </div>
+          <div class="px-4 cursor-pointer text-red-500 hover:bg-red-100 dark:hover:bg-gray-600 inline-flex" @click="shareToWeibo">
+            <i class="ri-weibo-line"></i>
+          </div>
+          <div class="px-4 cursor-pointer text-indigo-500 hover:bg-indigo-100 dark:hover:bg-gray-600 inline-flex" @click="shareToTelegram">
+            <i class="ri-telegram-line"></i>
+          </div>
+        </div>
+      </div>
+
+      
+
+      
+        <div id="vlaine-comment"></div>
+      
+
+      <footer class="py-12 text-center px-4 md:px-0" v-pre>
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+</footer>
+    </div>
+
+    <!-- TOC Container -->
+    <div class="fixed right-0 bottom-0 mb-16 mr-4 shadow w-8 h-8 rounded-full flex justify-center items-center z-10 cursor-pointer bg-white dark:bg-gray-500 dark:text-gray-200 hover:shadow-lg transition-all animated fadeInRight" @click="showToc = true">
+      <i class="ri-file-list-line"></i>
+    </div>
+
+    <div class="fixed right-0 top-0 bottom-0 overflow-y-auto w-64 bg-white dark:bg-gray-800 p-4 border-l border-gray-100 dark:border-gray-600 z-10 transition-fast" :class="{ '-mr-64': !showToc }">
+      <div class="flex mb-4 justify-end">
+        <div class="w-8 h-8 inline-flex justify-center items-center rounded-full cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition-fast" @click="showToc = false">
+          <i class="ri-close-line text-lg"></i>
+        </div>
+      </div>
+      <div class="post-toc-container">
+        <ul class="markdownIt-TOC">
+<li><a href="#%E5%89%8D%E8%A8%80">前言</a>
+<ul>
+<li><a href="#0x1">0x1</a></li>
+<li><a href="#0x2">0x2</a></li>
+<li><a href="#0x3">0x3</a>
+<ul>
+<li><a href="#%E6%9B%B4%E6%94%B9%E6%95%B0%E6%8D%AE%E5%BA%93%E8%B7%AF%E5%BE%84">更改数据库路径</a></li>
+<li><a href="#%E6%9B%B4%E6%94%B9%E7%BC%96%E7%A0%81%E5%99%A8%E5%90%8C%E6%AD%A5">更改编码器同步</a></li>
+</ul>
+</li>
+<li><a href="#%E7%BB%93%E8%AF%AD">结语</a></li>
+</ul>
+</li>
+<li><a href="#virink%E6%8F%90%E4%BE%9B%E5%AE%8C%E7%BE%8E%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88-%E6%84%9F%E8%B0%A2">Virink提供完美解决方案 感谢</a></li>
+</ul>
+
+      </div>
+    </div>
+
+    <!-- Back to top -->
+    <div class="fixed right-0 bottom-0 mb-4 mr-4 shadow w-8 h-8 rounded-full flex justify-center items-center z-10 cursor-pointer bg-white hover:shadow-lg transition-all dark:bg-gray-500 dark:text-gray-200" @click="backToUp" v-show="scrolled">
+      <i class="ri-arrow-up-line"></i>
+    </div>
+  </div>
+
+  <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+  <!-- Background of PhotoSwipe. 
+        It's a separate element as animating opacity is faster than rgba(). -->
+  <div class="pswp__bg">
+  </div>
+  <!-- Slides wrapper with overflow:hidden. -->
+  <div class="pswp__scroll-wrap">
+    <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+    <div class="pswp__container">
+      <div class="pswp__item">
+      </div>
+      <div class="pswp__item">
+      </div>
+      <div class="pswp__item">
+      </div>
+    </div>
+    <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+    <div class="pswp__ui pswp__ui--hidden">
+      <div class="pswp__top-bar">
+        <!--  Controls are self-explanatory. Order can be changed. -->
+        <div class="pswp__counter">
+        </div>
+        <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+        <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+        <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+        <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+        <!-- element will get class pswp__preloader--active when preloader is running -->
+        <div class="pswp__preloader">
+          <div class="pswp__preloader__icn">
+            <div class="pswp__preloader__cut">
+              <div class="pswp__preloader__donut">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+        <div class="pswp__share-tooltip">
+        </div>
+      </div>
+      <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+      </button>
+      <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+      </button>
+      <div class="pswp__caption">
+        <div class="pswp__caption__center">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="https://ca3tie1.github.io/media/scripts/main.js"></script>
+  
+  <!-- Code Highlight -->
+  
+    <script src="https://ca3tie1.github.io/media/prism.js"></script>
+    <script>
+      Prism.highlightAll()
+    </script>
+  
+
+  <script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+  <script>
+    //拿到预览框架，也就是上面的html代码
+    var pswpElement = document.querySelectorAll('.pswp')[0];
+    //定义图片数组变量
+    var imgitems;
+    /**
+    * 用于显示预览界面
+    * @param index 图片数组下标
+    */
+    function viewImg(index) {
+      //其它选项这里不做过多阐述，详情见官网
+      var pswpoptions = {
+        index: parseInt(index, 10), // 开始幻灯片索引。0是第一张幻灯片。必须是整数，而不是字符串。
+        bgOpacity: 0.7, // 背景透明度，0-1
+        maxSpreadZoom: 3, // 缩放级别，不要太大
+      };
+      //初始化并打开PhotoSwipe，pswpElement对应上面预览框架，PhotoSwipeUI_Default为皮肤，imgitems为图片数组，pswpoptions为选项
+      var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, imgitems, pswpoptions);
+      gallery.init()
+    }
+    /**
+    * 用于添加图片点击事件
+    * @param img 图片元素
+    * @param index 所属下标（在imgitems中的位置）
+    */
+    function addImgClick(img, index) {
+      img.onclick = function() {
+        viewImg(index)
+      }
+    }
+    /**
+    * 轮询所有图片，获取src、width、height等数据，加入imgitems，并给图片元素添加事件
+    * 最好在onload中执行该方法，本站因放在最底部，所以直接初始化
+    * 异步加载图片可在图片元素创建完成后调用此方法
+    */
+    function initImg() {
+      //重置图片数组
+      imgitems = [];
+      //查找class:markdown 下的所有img元素并遍历
+      var imgs = document.querySelectorAll('.markdown img');
+      for (var i = 0; i < imgs.length; i++) {
+        var img = imgs[i];
+        //本站相册初始为loading图片，真实图片放在data-src
+        var ds = img.getAttribute("data-src");
+        //创建image对象，用于获取图片宽高
+        var imgtemp = new Image();
+        //判断是否存在data-src
+        if (ds != null && ds.length > 0) {
+          imgtemp.src = ds
+        } else {
+          imgtemp.src = img.src
+        }
+        //判断是否存在缓存
+        if (imgtemp.complete) {
+          var imgobj = {
+            "src": imgtemp.src,
+            "w": imgtemp.width,
+            "h": imgtemp.height,
+          };
+          imgitems[i] = imgobj;
+          addImgClick(img, i);
+        } else {
+          console.log('进来了2')
+          imgtemp.index = i;
+          imgtemp.img = img;
+          imgtemp.onload = function() {
+            var imgobj = {
+              "src": this.src,
+              "w": this.width,
+              "h": this.height,
+            };
+            //不要使用push，因为onload前后顺序会不同
+            imgitems[this.index] = imgobj
+            //添加点击事件
+            addImgClick(this.img, this.index);
+          }
+        }
+      }
+    }
+    //初始化
+    initImg();
+  </script>
+  
+    <script type="application/javascript" src="https://unpkg.com/valine"></script>
+<script type="application/javascript">
+  new Valine({
+    el: '#vlaine-comment',
+    appId: 'Ok7dv2WeijvEtMKCFgXFt8HF-gzGzoHsz',
+    appKey: 'B9gSkwrqd6EYJOX722X89yoW',
+    pageSize: 10,
+    notify: true,
+    avatar: 'mp',
+    verify: true,
+    placeholder: '来都来了，不妨评论一下。',
+    visitor: true,
+    highlight: true,
+    recordIP: true,
+  })
+</script>
+  
+  
+</body>
+
+</html>
