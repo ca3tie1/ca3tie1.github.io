@@ -73178,14 +73178,30 @@
         line-height: 1.62
     }
     
+    @media (prefers-color-scheme: dark) {
+        .preview-container[data-v-4ba2f26e] li code,
+        .preview-container[data-v-4ba2f26e] p code {
+            font-family: Source Code Pro, Consolas, Menlo, Monaco, Courier New, monospace;
+            line-height: normal;
+            word-wrap: break-word;
+            border-radius: 0;
+            background-color: rgba(157, 158, 158, 0.1);
+            color: #ca6666;
+            padding: .2em .33333333em;
+            font-size: .875rem;
+            margin-left: .125em;
+            margin-right: .125em
+        }
+    }
+    
     .preview-container[data-v-4ba2f26e] li code,
     .preview-container[data-v-4ba2f26e] p code {
         font-family: Source Code Pro, Consolas, Menlo, Monaco, Courier New, monospace;
         line-height: normal;
         word-wrap: break-word;
         border-radius: 0;
-        background-color: rgba(157, 158, 158, 0.1);
-        color: #ca6666;
+        background-color: #fff5f5;
+        color: #c53030;
         padding: .2em .33333333em;
         font-size: .875rem;
         margin-left: .125em;
