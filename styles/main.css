@@ -11,7 +11,7 @@ body {
 }
 a:not([class]) {
   border-bottom-style: solid;
-  border-bottom-width: 0.2rem;
+  border-bottom-width: 1px solid;
   color: #0f61ff;
   text-decoration: none;
   transition: all 0.3s ease 0s;
