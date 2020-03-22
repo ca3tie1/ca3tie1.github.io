@@ -73131,16 +73131,17 @@
         font-size: 15px
     }
     
-    .preview-container[data-v-4ba2f26e] a {
-        color: #EAEAEA;
-        word-wrap: break-word;
-        text-decoration: none;
-        border-bottom: 1px solid rgba(234, 234, 234, .26)
-    }
-    
-    .preview-container[data-v-4ba2f26e] a:hover {
-        color: #999;
-        border-bottom: 1px solid #999
+    @media (prefers-color-scheme: dark) {
+        .preview-container[data-v-4ba2f26e] a {
+            color: #EAEAEA;
+            word-wrap: break-word;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(234, 234, 234, .26)
+        }
+        .preview-container[data-v-4ba2f26e] a:hover {
+            color: #999;
+            border-bottom: 1px solid #999
+        }
     }
     
     .preview-container[data-v-4ba2f26e] img {
@@ -73393,7 +73394,7 @@
     
     .preview-container[data-v-4ba2f26e] .markdownIt-TOC {
         list-style: none;
-        background: rgba(157, 158, 158, 0.1);
+        background: rgba(247, 250, 252, 0.1);
         padding: 1.5rem;
         border-radius: .5rem;
         color: rgb(91, 91, 91);
