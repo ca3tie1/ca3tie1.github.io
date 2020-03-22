@@ -1913,8 +1913,10 @@
         border-color: #FAFAFA;
     }
     
-    .border-gray-200 {
-        border-color: #EAEAEA;
+    @media (prefers-color-scheme: dark) {
+        .border-gray-200 {
+            color: #888;
+        }
     }
     
     .border-gray-300 {
@@ -2311,6 +2313,12 @@
     
     .hover\:border-gray-600:hover {
         border-color: #444;
+    }
+    
+    @media (prefers-color-scheme: dark) {
+        .hover\:border-gray-600:hover {
+            border-color: #EAEAEA;
+        }
     }
     
     .hover\:border-gray-700:hover {
@@ -10061,6 +10069,12 @@
     
     .text-gray-700 {
         color: #333;
+    }
+    
+    @media (prefers-color-scheme: dark) {
+        .text-gray-700 {
+            color: #999;
+        }
     }
     
     .text-gray-800 {
