@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="https://ca3tie1.github.io/styles/main.css">
 <link rel="alternate" type="application/atom+xml" title="蚁剑ASP连SQLSERVER执行xp_cmdshell爆 驱动程序不支持所需的属性 解决办法 - Castiel&#39;s Blog - Atom Feed" href="https://ca3tie1.github.io/atom.xml">
 
-    
+
 
   <meta name="description" content="使用ASP连接SQLSERVER sa执行xp_cmdshell爆“-2147217887:ODBC 驱动程序不支持所需的属性错误”。
 
@@ -35,9 +35,9 @@
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.css">
- 
+
   
-    <link rel="stylesheet" href="https://ca3tie1.github.io/media/css/prism-atom-dark.css">
+    <link rel="stylesheet" href="https://ca3tie1.github.io/media/css/prism-GrideaPreview.css">
   
 
   
@@ -62,7 +62,7 @@
           <div class="text-gray-400 text-sm mr-4">2020-03-22 · 2 min read</div>
           
         </div>
-        <div class="markdown mb-8" v-pre>
+        <div data-v-4ba2f26e class="preview-container" v-pre>
           <p>使用ASP连接SQLSERVER sa执行xp_cmdshell爆“-2147217887:ODBC 驱动程序不支持所需的属性错误”。<br>
 <img src="https://img-blog.csdnimg.cn/20191218214310280.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0NhM3RpZTE=,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述" loading="lazy"><br>
 原因是在<code>source\core\asp\template\database\sqlserver.js</code>中执行SQL语句代码模板中使用Recordset对象的open方法来执行SQL语句，貌似是该方法不支持请求xp_cmdshell这种过程对象，具体我也不清楚，这里参考了下菜刀的方式解决。</p>
@@ -185,7 +185,7 @@ Enjoy!</p>
 
   <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
   <script src="https://ca3tie1.github.io/media/scripts/main.js"></script>
-  
+
   <!-- Code Highlight -->
   
     <script src="https://ca3tie1.github.io/media/prism.js"></script>
