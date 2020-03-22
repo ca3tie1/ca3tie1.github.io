@@ -14198,6 +14198,7 @@
     
     .post-toc-container .markdownIt-TOC {
         margin-left: 0.2rem;
+        background-color: #f7fafc;
     }
     
     .post-toc-container .markdownIt-TOC ul {
