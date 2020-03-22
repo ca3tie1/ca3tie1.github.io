@@ -14197,7 +14197,7 @@
     }
     
     .post-toc-container .markdownIt-TOC {
-        margin-left: -1rem;
+        margin-left: 1rem;
     }
     
     .post-toc-container .markdownIt-TOC ul {
@@ -14210,6 +14210,7 @@
     
     @media (prefers-color-scheme: dark) {
         .post-toc-container .markdownIt-TOC {
+            margin-left: 1rem;
             list-style: none;
             background: rgba(157, 158, 158, 0.1);
             padding: 1.5rem;
