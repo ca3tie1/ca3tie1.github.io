@@ -11192,8 +11192,7 @@
     }
     
     .text-5xl {
-        font-size: 2rem;
-        color: azure;
+        font-size: 3rem;
     }
     
     .text-6xl {
@@ -14197,7 +14196,7 @@
         transition: all 0.35s ease;
     }
     
-    .markdown .markdownIt-TOC {
+    .post-toc-container .markdownIt-TOC {
         list-style: none;
         background: rgba(157, 158, 158, 0.1);
         ;
@@ -14206,7 +14205,7 @@
         color: rgb(91, 91, 91)
     }
     
-    .markdown .markdownIt-TOC ul {
+    .post-toc-container .markdownIt-TOC ul {
         list-style: none;
         padding-left: 16px
     }
@@ -14224,32 +14223,31 @@
         }
     }
     
-    .post-toc-container .markdownIt-TOC {
-        list-style: none;
-        background: rgba(157, 158, 158, 0.1);
-        padding: 1.5rem;
-        border-radius: .5rem;
-        color: rgb(91, 91, 91);
-    }
-    
-    .post-toc-container .markdownIt-TOC ul {
-        padding-left: 1rem;
-        list-style: none;
-        margin: 8px;
-        padding-left: 16px;
-    }
-    
-    .post-toc-container .markdownIt-TOC a {
-        display: inline-block;
-        color: #EAEAEA;
-        word-wrap: break-word;
-        text-decoration: none;
-        border-bottom: 1px solid rgba(234, 234, 234, .26)
-    }
-    
-    .post-toc-container .markdownIt-TOC a:hover {
-        color: #999;
-        border-bottom: 1px solid #999
+    @media (prefers-color-scheme: dark) {
+        .post-toc-container .markdownIt-TOC {
+            list-style: none;
+            background: rgba(157, 158, 158, 0.1);
+            padding: 1.5rem;
+            border-radius: .5rem;
+            color: rgb(91, 91, 91);
+        }
+        .post-toc-container .markdownIt-TOC ul {
+            padding-left: 1rem;
+            list-style: none;
+            margin: 8px;
+            padding-left: 16px;
+        }
+        .post-toc-container .markdownIt-TOC a {
+            display: inline-block;
+            color: #EAEAEA;
+            word-wrap: break-word;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(234, 234, 234, .26)
+        }
+        .post-toc-container .markdownIt-TOC a:hover {
+            color: #999;
+            border-bottom: 1px solid #999
+        }
     }
     
     @media (min-width: 640px) {
