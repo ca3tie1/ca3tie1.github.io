@@ -11195,6 +11195,12 @@
         font-size: 3rem;
     }
     
+    @media (prefers-color-scheme: dark) {
+        .text-5xl {
+            color: #fff;
+        }
+    }
+    
     .text-6xl {
         font-size: 4rem;
     }
