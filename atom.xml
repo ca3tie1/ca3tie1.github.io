@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://ca3tie1.github.io</id>
     <title>Castiel&apos;s Blog</title>
-    <updated>2020-04-03T08:21:40.375Z</updated>
+    <updated>2020-04-03T15:10:59.592Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://ca3tie1.github.io"/>
     <link rel="self" href="https://ca3tie1.github.io/atom.xml"/>
@@ -10,6 +10,347 @@
     <logo>https://ca3tie1.github.io/images/avatar.png</logo>
     <icon>https://ca3tie1.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, Castiel&apos;s Blog</rights>
+    <entry>
+        <title type="html"><![CDATA[OneThink1.0远程代码执行漏洞WriteUp]]></title>
+        <id>https://ca3tie1.github.io/post/onethink10-yuan-cheng-dai-ma-zhi-xing-lou-dong-writeup/</id>
+        <link href="https://ca3tie1.github.io/post/onethink10-yuan-cheng-dai-ma-zhi-xing-lou-dong-writeup/">
+        </link>
+        <updated>2020-04-03T12:41:03.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="0x00-前言">0x00 前言</h1>
+<p>最近在恶补以往ctf的web类题型，想借此以弥补一些因之前的懒散而错过的知识点。OneThink1.0这个题是百度杯”CTF比赛 2017 二月场的一道Web题，刚拿到还以为是考点是SQL注入、文件上传、逻辑漏洞或者是其他一些奇葩知识点。搞半天没一点进展，忍不住还是看Writeup，原来考点就是OneThink1.0的远程代码执行漏洞。看了writeup大概了解，还是决定下载源码来自己跟一下，所以有了此文。写个Writup以便日后查阅，更是为了加深下印象。</p>
+<h1 id="0x01-分析">0x01 分析</h1>
+<p>漏洞成因是在缓存设计上的一些缺陷造成的，利用流程是用户注册时候注册恶意用户名，在登录后系统生成用户列表缓存时候造成代码执行。</p>
+<h2 id="用户注册机制">用户注册机制</h2>
+<p>首先还是从用户注册开始说起，流程从<code>Application、Home、Controller、UserController.class.php</code>开始，代码如下：</p>
+<pre><code class="language-php">	/* 注册页面 */
+	public function register($username = '', $password = '', $repassword = '', $email = '', $verify = ''){
+		if(IS_POST){ //注册用户
+			/* 检测验证码 */
+			if(!check_verify($verify)){
+				$this-&gt;error('验证码输入错误！');
+			}
+
+			/* 检测密码 */
+			if($password != $repassword){
+				$this-&gt;error('密码和重复密码不一致！');
+			}			
+
+			/* 调用注册接口注册用户 */
+            $User = new UserApi;
+			$uid = $User-&gt;register($username, $password, $email);
+			if(0 &lt; $uid){ //注册成功
+				//TODO: 发送验证邮件
+				$this-&gt;success('注册成功！',U('login'));
+			} else { //注册失败，显示错误信息
+				$this-&gt;error($this-&gt;showRegError($uid));
+			}
+
+		} else { //显示注册表单
+			$this-&gt;display();
+		}
+	}
+</code></pre>
+<p>控制器调用<code>Application/User/Api/UserApi.class.php</code>接口的<code>register</code>方法，继续跟进<code>UserApi.class.php</code>的<code>register</code>方法：</p>
+<pre><code class="language-php">public function register($username, $password, $email, $mobile = ''){
+		return $this-&gt;model-&gt;register($username, $password, $email, $mobile);
+	}
+</code></pre>
+<p>该方法调用<code>Application/User/Model/UcenterMemberModel.class.php</code>的<code>register</code>方法，继续跟进<code>UcenterMemberModel.class.php</code>：</p>
+<pre><code class="language-php">	public function register($username, $password, $email, $mobile){
+		$data = array(
+			'username' =&gt; $username,
+			'password' =&gt; $password,
+			'email'    =&gt; $email,
+			'mobile'   =&gt; $mobile,
+		);
+
+		//验证手机
+		if(empty($data['mobile'])) unset($data['mobile']);
+
+		/* 添加用户 */
+		if($this-&gt;create($data)){
+			$uid = $this-&gt;add();
+			return $uid ? $uid : 0; //0-未知错误，大于0-注册成功
+		} else {
+			return $this-&gt;getError(); //错误详情见自动验证注释
+		}
+	}
+</code></pre>
+<p>在<code>UcenterMemberModel</code>中配置了用户模型验证机制，如下：</p>
+<pre><code class="language-php">/* 用户模型自动验证 */
+	protected $_validate = array(
+		/* 验证用户名 */
+		array('username', '1,30', -1, self::EXISTS_VALIDATE, 'length'), //用户名长度不合法
+		array('username', 'checkDenyMember', -2, self::EXISTS_VALIDATE, 'callback'), //用户名禁止注册
+		array('username', '', -3, self::EXISTS_VALIDATE, 'unique'), //用户名被占用
+
+		/* 验证密码 */
+		array('password', '6,30', -4, self::EXISTS_VALIDATE, 'length'), //密码长度不合法
+
+		/* 验证邮箱 */
+		array('email', 'email', -5, self::EXISTS_VALIDATE), //邮箱格式不正确
+		array('email', '1,32', -6, self::EXISTS_VALIDATE, 'length'), //邮箱长度不合法
+		array('email', 'checkDenyEmail', -7, self::EXISTS_VALIDATE, 'callback'), //邮箱禁止注册
+		array('email', '', -8, self::EXISTS_VALIDATE, 'unique'), //邮箱被占用
+
+		/* 验证手机号码 */
+		array('mobile', '//', -9, self::EXISTS_VALIDATE), //手机格式不正确 TODO:
+		array('mobile', 'checkDenyMobile', -10, self::EXISTS_VALIDATE, 'callback'), //手机禁止注册
+		array('mobile', '', -11, self::EXISTS_VALIDATE, 'unique'), //手机号被占用
+	);
+</code></pre>
+<p>可见对用户输入验证只有一些格式、长度等验证，并未做特殊字符过滤等相关安全机制。</p>
+<h2 id="系统缓存机制">系统缓存机制</h2>
+<p>根据解题思路，漏洞触发点就在用户登录时候，加上漏洞成因那肯定是用户登录的时候有读取和生成缓存文件的操作。跟下登录流程，起始点和注册流程一样，位于控制器<code>UserController.class.php</code>，控制器再调用<code>UserApi.class.php</code>的<code>login</code>方法验证用户，返回用户的<code>uid</code>，再调用模块<code>Application/Home/Model/MemberModel.class.php</code>的<code>login</code>方法，传入<code>uid</code>。</p>
+<pre><code class="language-php">	/* 登录页面 */
+	public function login($username = '', $password = '', $verify = ''){
+		if(IS_POST){ //登录验证
+			/* 检测验证码 */
+			if(!check_verify($verify)){
+				$this-&gt;error('验证码输入错误！');
+			}
+
+			/* 调用UC登录接口登录 */
+			$user = new UserApi;
+			$uid = $user-&gt;login($username, $password);
+			if(0 &lt; $uid){ //UC登录成功
+				/* 登录用户 */
+				$Member = D('Member');
+				if($Member-&gt;login($uid)){ //登录用户
+					//TODO:跳转到登录前页面
+					$this-&gt;success('登录成功！',U('Home/Index/index'));
+				} else {
+					$this-&gt;error($Member-&gt;getError());
+				}
+
+			} else { //登录失败
+				switch($uid) {
+					case -1: $error = '用户不存在或被禁用！'; break; //系统级别禁用
+					case -2: $error = '密码错误！'; break;
+					default: $error = '未知错误！'; break; // 0-接口参数错误（调试阶段使用）
+				}
+				$this-&gt;error($error);
+			}
+
+		} else { //显示登录表单
+			$this-&gt;display();
+		}
+	}
+</code></pre>
+<p>跟进<code>MemberModel.class.php</code>的<code>login</code>方法</p>
+<pre><code class="language-php">    public function login($uid){
+        /* 检测是否在当前应用注册 */
+        $user = $this-&gt;field(true)-&gt;find($uid);
+        if(!$user){ //未注册
+            /* 在当前应用中注册用户 */
+        	$Api = new UserApi();
+        	$info = $Api-&gt;info($uid);
+            $user = $this-&gt;create(array('nickname' =&gt; $info[1], 'status' =&gt; 1));
+            $user['uid'] = $uid;
+            if(!$this-&gt;add($user)){
+                $this-&gt;error = '前台用户信息注册失败，请重试！';
+                return false;
+            }
+        } elseif(1 != $user['status']) {
+            $this-&gt;error = '用户未激活或已禁用！'; //应用级别禁用
+            return false;
+        }
+
+        /* 登录用户 */
+        $this-&gt;autoLogin($user);
+
+        //记录行为
+        action_log('user_login', 'member', $uid, $uid);
+
+        return true;
+    }
+</code></pre>
+<p>这里前半部分主要是根据<code>uid</code>查询用户信息并验证是否注册和激活，然后进入<code>autoLogin</code>方法:</p>
+<pre><code class="language-php">private function autoLogin($user){
+        /* 更新登录信息 */
+        $data = array(
+            'uid'             =&gt; $user['uid'],
+            'login'           =&gt; array('exp', '`login`+1'),
+            'last_login_time' =&gt; NOW_TIME,
+            'last_login_ip'   =&gt; get_client_ip(1),
+        );
+        $this-&gt;save($data);
+
+        /* 记录登录SESSION和COOKIES */
+        $auth = array(
+            'uid'             =&gt; $user['uid'],
+            'username'        =&gt; get_username($user['uid']),
+            'last_login_time' =&gt; $user['last_login_time'],
+        );
+
+        session('user_auth', $auth);
+        session('user_auth_sign', data_auth_sign($auth));
+
+    }
+</code></pre>
+<p>在该方法中设置一些用户基本信息，其中<code>$auth</code>数组中的<code>username</code>字段从<code>get_username</code>方法获取，继续更新<code>get_username</code>方法，该方法在<code>Application/Common/Common/function.php</code> 中定义:</p>
+<pre><code class="language-php">function get_username($uid = 0){
+    static $list;
+    if(!($uid &amp;&amp; is_numeric($uid))){ //获取当前登录用户名
+        return session('user_auth.username');
+    }
+
+    /* 获取缓存数据 */
+    if(empty($list)){
+        $list = S('sys_active_user_list');
+    }
+
+    /* 查找用户信息 */
+    $key = &quot;u{$uid}&quot;;
+    if(isset($list[$key])){ //已缓存，直接使用
+        $name = $list[$key];
+    } else { //调用接口获取用户信息
+        $User = new User\Api\UserApi();
+        $info = $User-&gt;info($uid);
+        if($info &amp;&amp; isset($info[1])){
+            $name = $list[$key] = $info[1];
+            /* 缓存用户 */
+            $count = count($list);
+            $max   = C('USER_MAX_CACHE');
+            while ($count-- &gt; $max) {
+                array_shift($list);
+            }
+            S('sys_active_user_list', $list);
+        } else {
+            $name = '';
+        }
+    }
+    return $name;
+}
+</code></pre>
+<p>可见在该方法中就有存取缓存信息的操作了，如果有缓存则直接使用，否则调用接口查询用户信息，并将用户名信息传入<code>S</code>函数创建缓存，根据<code>S</code>方法,这里还传入了个<code>sys_active_user_list</code>标识：</p>
+<pre><code class="language-php">function S($name,$value='',$options=null) {
+    static $cache   =   '';
+    if(is_array($options) &amp;&amp; empty($cache)){
+        // 缓存操作的同时初始化
+        $type       =   isset($options['type'])?$options['type']:'';
+        $cache      =   Think\Cache::getInstance($type,$options);
+    }elseif(is_array($name)) { // 缓存初始化
+        $type       =   isset($name['type'])?$name['type']:'';
+        $cache      =   Think\Cache::getInstance($type,$name);
+        return $cache;
+    }elseif(empty($cache)) { // 自动初始化
+        $cache      =   Think\Cache::getInstance();
+    }
+    if(''=== $value){ // 获取缓存
+        return $cache-&gt;get($name);
+    }elseif(is_null($value)) { // 删除缓存
+        return $cache-&gt;rm($name);
+    }else { // 缓存数据
+        if(is_array($options)) {
+            $expire     =   isset($options['expire'])?$options['expire']:NULL;
+        }else{
+            $expire     =   is_numeric($options)?$options:NULL;
+        }
+        return $cache-&gt;set($name, $value, $expire);
+    }
+}
+</code></pre>
+<p>在该函数中根据传入的<code>$name</code>(也就是字符串<code>sys_active_user_list</code>)实例化文件缓存类<code>ThinkPHP/Library/Think/Cache/Driver/File.class.php</code>，并调用<code>get</code>方法，继续跟进：</p>
+<pre><code class="language-php">public function get($name) {
+        $filename   =   $this-&gt;filename($name);
+        if (!is_file($filename)) {
+           return false;
+        }
+        N('cache_read',1);
+        $content    =   file_get_contents($filename);
+        if( false !== $content) {
+            $expire  =  (int)substr($content,8, 12);
+            if($expire != 0 &amp;&amp; time() &gt; filemtime($filename) + $expire) {
+                //缓存过期删除缓存文件
+                unlink($filename);
+                return false;
+            }
+            if(C('DATA_CACHE_CHECK')) {//开启数据校验
+                $check  =  substr($content,20, 32);
+                $content   =  substr($content,52, -3);
+                if($check != md5($content)) {//校验错误
+                    return false;
+                }
+            }else {
+            	$content   =  substr($content,20, -3);
+            }
+            if(C('DATA_CACHE_COMPRESS') &amp;&amp; function_exists('gzcompress')) {
+                //启用数据压缩
+                $content   =   gzuncompress($content);
+            }
+            $content    =   unserialize($content);
+            return $content;
+        }
+        else {
+            return false;
+        }
+    }
+</code></pre>
+<p>在该方法中首先设置缓存文件的文件名<code>$filename = $this-&gt;filename($name);</code>，<code>$name</code>值继续传递:</p>
+<pre><code class="language-php">private function filename($name) {
+        $name	=	md5($name);
+        if(C('DATA_CACHE_SUBDIR')) {
+            // 使用子目录
+            $dir   ='';
+            for($i=0;$i&lt;C('DATA_PATH_LEVEL');$i++) {
+                $dir	.=	$name{$i}.'/';
+            }
+            if(!is_dir($this-&gt;options['temp'].$dir)) {
+                mkdir($this-&gt;options['temp'].$dir,0755,true);
+            }
+            $filename	=	$dir.$this-&gt;options['prefix'].$name.'.php';
+        }else{
+            $filename	=	$this-&gt;options['prefix'].$name.'.php';
+        }
+        return $this-&gt;options['temp'].$filename;
+    }
+</code></pre>
+<p>在该函数中还涉及到一个文件名前缀<code>$this-&gt;options['prefix']</code>的问题，在看其他人的writeup的时候有的分析里是有<code>onethink_</code>这个前缀的，而且在<code>Application/Home/Conf/config.php</code>文件中确实也配置了<code>'DATA_CACHE_PREFIX' =&gt; 'onethink_', // 缓存前缀</code>。但正确的CTF题解中却没有这个前缀，我还以为CTF使用的源码有做过更改。这个问题也让我困惑了下，直到自己动手跟代码才搞清楚。原来实际程序中<code>Application/Home/Conf/config.php</code>的<code>DATA_CACHE_PREFIX</code>配置并未覆盖系统的<code>convention.php</code>的配置，<code>convention.php</code>中的默认配置为空，所以这里缓存文件名就没有前缀了。<br>
+回到正题，通过以上分析可以确定缓存文件名是一个固定值也就是<code>md5('sys_active_user_list')</code> 其值为<code>2bb202459c30a1628513f40ab22fa01a.php</code>，接下来看看如果控制写入内容。</p>
+<p>在<code>S</code>函数中，未提交<code>$value</code>参数是调用文件缓存类的<code>get</code>方法取缓存，取到缓存并使用了之后再调用<code>set</code>方法写缓存。这里跟进<code>set</code>方法：</p>
+<pre><code class="language-php">&lt;?
+public function set($name,$value,$expire=null) {
+        N('cache_write',1);
+        if(is_null($expire)) {
+            $expire =  $this-&gt;options['expire'];
+        }
+        $filename   =   $this-&gt;filename($name);
+        $data   =   serialize($value);
+        if( C('DATA_CACHE_COMPRESS') &amp;&amp; function_exists('gzcompress')) {
+            //数据压缩
+            $data   =   gzcompress($data,3);
+        }
+        if(C('DATA_CACHE_CHECK')) {//开启数据校验
+            $check  =  md5($data);
+        }else {
+            $check  =  '';
+        }
+        $data    = &quot;&lt;?php\n//&quot;.sprintf('%012d',$expire).$check.$data.&quot;\n?&gt;&quot;;
+        $result  =   file_put_contents($filename,$data);
+        if($result) {
+            if($this-&gt;options['length']&gt;0) {
+                // 记录缓存队列
+                $this-&gt;queue($name);
+            }
+            clearstatcache();
+            return true;
+        }else {
+            return false;
+        }
+    }
+    ?&gt;
+</code></pre>
+<p>这里将<code>$data</code>序列化之后进行字符串拼接并写入到缓存文件中，在字符串拼接中php标签后面紧跟了<code>//</code>用于注释后面的信息，默认情况下被注释的行内所有php代码都不会执行。但<code>//</code>是单行注释符，如果我们控制后面的内容能换行，则就顺利绕过这个限制了，所以在利用的过程中我们注册的时候需要使用<code>%0a</code>来绕过。<code>%0a</code>是换行符的URL编码，在提交注册和登录的时候我们提交的<code>%0a</code>还会再次被编码变成<code>%250a</code>所以这里需要进行两次解码之后还原换行符，然后提交注册或是登录，最终利用代码<code>%0aphpinfo();//</code>，后面的<code>//</code>是为了代码插入后注释掉后半部的内容，如下图：<br>
+<img src="https://ca3tie1.github.io/post-images/1585925628525.png" alt="" loading="lazy"><br>
+登录之后即可在生成<code>Runtime/Temp/2bb202459c30a1628513f40ab22fa01a.php</code>的缓存文件，内容如下图所示：<br>
+<img src="https://ca3tie1.github.io/post-images/1585925879219.jpg" alt="" loading="lazy"><br>
+访问后成功执行<code>phpinfo()</code><br>
+<img src="https://ca3tie1.github.io/post-images/1585925969559.jpg" alt="" loading="lazy"></p>
+<h1 id="总结">总结</h1>
+<p>漏洞也是比较经典的缓存机制漏洞，分析和利用比较简单，但是挖掘这样的漏洞还是需要时间的，其中辛苦也是漏洞作者才能体会了。路漫漫其修远兮，吾将上下而求索。</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[两张图总结Java中的IO流分类]]></title>
         <id>https://ca3tie1.github.io/post/liang-zhang-tu-zong-jie-java-zhong-de-io-liu-fen-lei/</id>
