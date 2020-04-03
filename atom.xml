@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://ca3tie1.github.io</id>
     <title>Castiel&apos;s Blog</title>
-    <updated>2020-04-03T15:10:59.592Z</updated>
+    <updated>2020-04-03T15:16:41.957Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://ca3tie1.github.io"/>
     <link rel="self" href="https://ca3tie1.github.io/atom.xml"/>
@@ -12,8 +12,8 @@
     <rights>All rights reserved 2020, Castiel&apos;s Blog</rights>
     <entry>
         <title type="html"><![CDATA[OneThink1.0远程代码执行漏洞WriteUp]]></title>
-        <id>https://ca3tie1.github.io/post/onethink10-yuan-cheng-dai-ma-zhi-xing-lou-dong-writeup/</id>
-        <link href="https://ca3tie1.github.io/post/onethink10-yuan-cheng-dai-ma-zhi-xing-lou-dong-writeup/">
+        <id>https://ca3tie1.github.io/post/onethink10-code-execute-writeup/</id>
+        <link href="https://ca3tie1.github.io/post/onethink10-code-execute-writeup/">
         </link>
         <updated>2020-04-03T12:41:03.000Z</updated>
         <content type="html"><![CDATA[<h1 id="0x00-前言">0x00 前言</h1>
@@ -353,8 +353,8 @@ public function set($name,$value,$expire=null) {
     </entry>
     <entry>
         <title type="html"><![CDATA[两张图总结Java中的IO流分类]]></title>
-        <id>https://ca3tie1.github.io/post/liang-zhang-tu-zong-jie-java-zhong-de-io-liu-fen-lei/</id>
-        <link href="https://ca3tie1.github.io/post/liang-zhang-tu-zong-jie-java-zhong-de-io-liu-fen-lei/">
+        <id>https://ca3tie1.github.io/post/java-io-tips/</id>
+        <link href="https://ca3tie1.github.io/post/java-io-tips/">
         </link>
         <updated>2020-04-03T08:12:40.000Z</updated>
         <content type="html"><![CDATA[<h1 id="java-io流分类">Java IO流分类</h1>
