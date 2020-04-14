@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://ca3tie1.github.io</id>
     <title>Castiel&apos;s Blog</title>
-    <updated>2020-04-04T07:27:20.473Z</updated>
+    <updated>2020-04-14T03:34:52.527Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://ca3tie1.github.io"/>
     <link rel="self" href="https://ca3tie1.github.io/atom.xml"/>
@@ -16,7 +16,15 @@
         <link href="https://ca3tie1.github.io/post/0day-end-with-empty-function/">
         </link>
         <updated>2020-04-04T05:43:08.000Z</updated>
-        <content type="html"><![CDATA[<h1 id="0x00-前言">0x00 前言</h1>
+        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
+<li><a href="#0x00-%E5%89%8D%E8%A8%80">0x00 前言</a></li>
+<li><a href="#0x01-%E5%88%A9%E7%94%A8%E9%93%BE">0x01 利用链</a></li>
+<li><a href="#0x02-%E7%AC%AC%E4%B8%80%E4%B8%AAempty">0x02 第一个empty</a></li>
+<li><a href="#0x03-%E7%AC%AC%E4%BA%8C%E4%B8%AAempty">0x03 第二个empty</a></li>
+<li><a href="#0x04-%E6%80%BB%E7%BB%93">0x04 总结</a></li>
+</ul>
+</p>
+<h1 id="0x00-前言">0x00 前言</h1>
 <p>一年前挖过某系统的漏洞，但当时挖的0day有点鸡肋，能否成功利用取决于系统中用户是否自定义了某个值。最近这一年看系统经过几次版本迭代，于是下来对比了下更新内容，希望在功能上有所突破。但事与愿违，对比更新内容发现文件更新量到是多，但都是一些不痛不痒的更新。虽然最终未能挖到通杀0day，但在这次代码复审的过程中比去年多少有一点点突破，突破起于<code>empty</code>函数也终于<code>empty</code>。本文就此过程简单抽象出来记录一下，没准在码字的过程中就能灵光一闪有了突破口呢？</p>
 <h1 id="0x01-利用链">0x01 利用链</h1>
 <p>系统最终利用环境是通过构造参数形成SQL注入，只要有了SQL注入即可控制整个系统。先看看最终这个SQL注入的代码，我个人觉得还是比较有意思：</p>
@@ -89,7 +97,18 @@
         <link href="https://ca3tie1.github.io/post/onethink10-code-execute-writeup/">
         </link>
         <updated>2020-04-03T12:41:03.000Z</updated>
-        <content type="html"><![CDATA[<h1 id="0x00-前言">0x00 前言</h1>
+        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
+<li><a href="#0x00-%E5%89%8D%E8%A8%80">0x00 前言</a></li>
+<li><a href="#0x01-%E5%88%86%E6%9E%90">0x01 分析</a>
+<ul>
+<li><a href="#%E7%94%A8%E6%88%B7%E6%B3%A8%E5%86%8C%E6%9C%BA%E5%88%B6">用户注册机制</a></li>
+<li><a href="#%E7%B3%BB%E7%BB%9F%E7%BC%93%E5%AD%98%E6%9C%BA%E5%88%B6">系统缓存机制</a></li>
+</ul>
+</li>
+<li><a href="#%E6%80%BB%E7%BB%93">总结</a></li>
+</ul>
+</p>
+<h1 id="0x00-前言">0x00 前言</h1>
 <p>最近在恶补以往ctf的web类题型，想借此以弥补一些因之前的懒散而错过的知识点。OneThink1.0这个题是百度杯”CTF比赛 2017 二月场的一道Web题，刚拿到还以为是考点是SQL注入、文件上传、逻辑漏洞或者是其他一些奇葩知识点。搞半天没一点进展，忍不住还是看Writeup，原来考点就是OneThink1.0的远程代码执行漏洞。看了writeup大概了解，还是决定下载源码来自己跟一下，所以有了此文。写个Writup以便日后查阅，更是为了加深下印象。</p>
 <h1 id="0x01-分析">0x01 分析</h1>
 <p>漏洞成因是在缓存设计上的一些缺陷造成的，利用流程是用户注册时候注册恶意用户名，在登录后系统生成用户列表缓存时候造成代码执行。</p>
@@ -451,7 +470,19 @@ public function set($name,$value,$expire=null) {
         <link href="https://ca3tie1.github.io/post/IIS-Raid-backdooring-iis-using-native-modules/">
         </link>
         <updated>2020-03-23T13:10:57.000Z</updated>
-        <content type="html"><![CDATA[<h1 id="0x00-简介">0x00 简介</h1>
+        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
+<li><a href="#0x00-%E7%AE%80%E4%BB%8B">0x00 简介</a></li>
+<li><a href="#0x01-%E5%AE%89%E8%A3%85%E5%92%8C%E9%83%A8%E7%BD%B2">0x01 安装和部署</a>
+<ul>
+<li><a href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E5%AF%86%E7%A0%81%E5%AD%97%E6%AE%B5">自定义密码字段</a></li>
+<li><a href="#%E5%AE%89%E8%A3%85">安装</a></li>
+</ul>
+</li>
+<li><a href="#0x02-%E4%BD%BF%E7%94%A8">0x02 使用</a></li>
+<li><a href="#0x03-%E5%8F%82%E8%80%83">0x03 参考</a></li>
+</ul>
+</p>
+<h1 id="0x00-简介">0x00 简介</h1>
 <p>之前刷TW的时候在墙外看到老外分享的这款使用IIS的本地模块构建IIS后门，功能可以自定义命令执行，dumhash等。感觉不错。于是下了下来试了下，测试有一点小瑕疵，随即修改了下，原版项目地址(https://github.com/0x09AL/IIS-Raid)。</p>
 <h1 id="0x01-安装和部署">0x01 安装和部署</h1>
 <h2 id="自定义密码字段">自定义密码字段</h2>

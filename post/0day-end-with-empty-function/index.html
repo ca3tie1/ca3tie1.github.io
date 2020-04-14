@@ -14,19 +14,43 @@
 
 
 
-  <meta name="description" content="0x00 前言
-一年前挖过某系统的漏洞，但当时挖的0day有点鸡肋，能否成功利用取决于系统中用户是否自定义了某个值。最近这一年看系统经过几次版本迭代，于是下来对比了下更新内容，希望在功能上有所突破。但事与愿违，对比更新内容发现文件更新量到是..." />
+  <meta name="description" content="
+0x00 前言
+0x01 利用链
+0x02 第一个empty
+0x03 第二个empty
+0x04 总结
+
+
+0x00 前言
+一年前挖过某系统的漏洞，但当时挖的0day有点鸡肋，能否成功利用取决于系统中用户是否自定义了某个值。最近这一年看..." />
   <meta property="og:title" content="一条被empty函数终结的利用链 - Castiel&#39;s Blog">
-  <meta property="og:description" content="0x00 前言
-一年前挖过某系统的漏洞，但当时挖的0day有点鸡肋，能否成功利用取决于系统中用户是否自定义了某个值。最近这一年看系统经过几次版本迭代，于是下来对比了下更新内容，希望在功能上有所突破。但事与愿违，对比更新内容发现文件更新量到是..." />
+  <meta property="og:description" content="
+0x00 前言
+0x01 利用链
+0x02 第一个empty
+0x03 第二个empty
+0x04 总结
+
+
+0x00 前言
+一年前挖过某系统的漏洞，但当时挖的0day有点鸡肋，能否成功利用取决于系统中用户是否自定义了某个值。最近这一年看..." />
   <meta property="og:type" content="articles">
   <meta property="og:url" content="https://ca3tie1.github.io/post/0day-end-with-empty-function/" />
   <meta property="og:image" content="https://ca3tie1.github.io/post-images/0day-end-with-empty-function.jpg">
   <meta property="og:image:height" content="630">
   <meta property="og:image:width" content="1200">
   <meta name="twitter:title" content="一条被empty函数终结的利用链 - Castiel&#39;s Blog">
-  <meta name="twitter:description" content="0x00 前言
-一年前挖过某系统的漏洞，但当时挖的0day有点鸡肋，能否成功利用取决于系统中用户是否自定义了某个值。最近这一年看系统经过几次版本迭代，于是下来对比了下更新内容，希望在功能上有所突破。但事与愿违，对比更新内容发现文件更新量到是...">
+  <meta name="twitter:description" content="
+0x00 前言
+0x01 利用链
+0x02 第一个empty
+0x03 第二个empty
+0x04 总结
+
+
+0x00 前言
+一年前挖过某系统的漏洞，但当时挖的0day有点鸡肋，能否成功利用取决于系统中用户是否自定义了某个值。最近这一年看...">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="canonical" href="https://ca3tie1.github.io/post/0day-end-with-empty-function/">
 
@@ -60,7 +84,15 @@
           
         </div>
         <div data-v-4ba2f26e class="preview-container" v-pre>
-          <h1 id="0x00-前言">0x00 前言</h1>
+          <p><ul class="markdownIt-TOC">
+<li><a href="#0x00-%E5%89%8D%E8%A8%80">0x00 前言</a></li>
+<li><a href="#0x01-%E5%88%A9%E7%94%A8%E9%93%BE">0x01 利用链</a></li>
+<li><a href="#0x02-%E7%AC%AC%E4%B8%80%E4%B8%AAempty">0x02 第一个empty</a></li>
+<li><a href="#0x03-%E7%AC%AC%E4%BA%8C%E4%B8%AAempty">0x03 第二个empty</a></li>
+<li><a href="#0x04-%E6%80%BB%E7%BB%93">0x04 总结</a></li>
+</ul>
+</p>
+<h1 id="0x00-前言">0x00 前言</h1>
 <p>一年前挖过某系统的漏洞，但当时挖的0day有点鸡肋，能否成功利用取决于系统中用户是否自定义了某个值。最近这一年看系统经过几次版本迭代，于是下来对比了下更新内容，希望在功能上有所突破。但事与愿违，对比更新内容发现文件更新量到是多，但都是一些不痛不痒的更新。虽然最终未能挖到通杀0day，但在这次代码复审的过程中比去年多少有一点点突破，突破起于<code>empty</code>函数也终于<code>empty</code>。本文就此过程简单抽象出来记录一下，没准在码字的过程中就能灵光一闪有了突破口呢？</p>
 <h1 id="0x01-利用链">0x01 利用链</h1>
 <p>系统最终利用环境是通过构造参数形成SQL注入，只要有了SQL注入即可控制整个系统。先看看最终这个SQL注入的代码，我个人觉得还是比较有意思：</p>
