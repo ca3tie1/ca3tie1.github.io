@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://ca3tie1.github.io</id>
     <title>Castiel&apos;s Blog</title>
-    <updated>2020-04-14T03:34:52.527Z</updated>
+    <updated>2020-05-09T09:19:53.834Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://ca3tie1.github.io"/>
     <link rel="self" href="https://ca3tie1.github.io/atom.xml"/>
@@ -462,6 +462,8 @@ public function set($name,$value,$expire=null) {
 <figure data-type="image" tabindex="1"><img src="https://ca3tie1.github.io/post-images/1585901930539.jfif" alt="" loading="lazy"></figure>
 <h2 id="按操作对象分类结构图">按操作对象分类结构图：</h2>
 <figure data-type="image" tabindex="2"><img src="https://ca3tie1.github.io/post-images/1585901965124.jfif" alt="" loading="lazy"></figure>
+<h2 id="按字符字节处理方式分">按字符字节处理方式分</h2>
+<figure data-type="image" tabindex="3"><img src="https://ca3tie1.github.io/post-images/1589015986932.png" alt="" loading="lazy"></figure>
 ]]></content>
     </entry>
     <entry>
