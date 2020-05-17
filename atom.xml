@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://ca3tie1.github.io</id>
     <title>Castiel&apos;s Blog</title>
-    <updated>2020-05-09T09:19:53.834Z</updated>
+    <updated>2020-05-17T12:23:33.280Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://ca3tie1.github.io"/>
     <link rel="self" href="https://ca3tie1.github.io/atom.xml"/>
@@ -10,6 +10,30 @@
     <logo>https://ca3tie1.github.io/images/avatar.png</logo>
     <icon>https://ca3tie1.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, Castiel&apos;s Blog</rights>
+    <entry>
+        <title type="html"><![CDATA[记一次从车库到核心网段的渗透之路]]></title>
+        <id>https://ca3tie1.github.io/post/ji-yi-ci-cong-che-ku-dao-he-xin-wang-duan-de-shen-tou-zhi-lu/</id>
+        <link href="https://ca3tie1.github.io/post/ji-yi-ci-cong-che-ku-dao-he-xin-wang-duan-de-shen-tou-zhi-lu/">
+        </link>
+        <updated>2020-05-17T04:15:22.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="0x00-前言">0x00 前言</h1>
+<p>前段时间做了个渗透测试的项目，其过程中与常规渗透测试略有不同。在这次渗透过程从外网WEB应用无任何进展后团队尝试了实地渗透的方式。最终从实地一点一点扩展到目标核心网络，过程中走了不少弯路，也有不少有趣的经历。因涉及相关部门敏感信息，这里只大致记录下过程，打重码，部分细节需自行脑补。</p>
+<h1 id="0x01-公共wifi到内网">0x01 公共WiFi到内网</h1>
+<p>从决定实地渗透开始，从WiFi打入口点就是团队首要目标。经过一天的踩点摸排，团队决定把重点放到目标开发办公楼的WiFi上来。实际上在踩点过程中团队还有另外一条打点思路，就是目标对外办公业务场所也存在一些安全隐患。例如终端机弹CMD，USB接口完全暴露，额外的网络接口暴露等。但这条思路还有待验证，也不确定USB接口是否有做硬件白名单，但终端机直接连通目标核心内网是可以确定的。</p>
+<h2 id="wifi认证逻辑">WiFi认证逻辑</h2>
+<p>在确定把重点放在目标开发办公楼WiFi上来主要三点，一是该WiFi在楼下车库信号良好，方便蹲点渗透(除了笔记本电池和膀胱不够大之外没其他坏处)。二是该WiFi是用于办公区工作人员、办事人员移动设备上网使用(应该比较弱鸡)。第三点也是最重要的一点，该WiFi开放式连接，只是要上互联网需要账号密码认证。这里比较有趣的一点就是连接上该WiFi之后，会DHCP获取一个内网IP(10.xx.xx.xx)，也就是处于他们内网环境了。虽然访互联网，或者内网中http服务时候会自动跳转到认证页面，但在内网中使用其他协议却是畅通无阻的。<br>
+于是从该WiFi得到目标内网的入口后直接扫了下WiFi认证服务器，发现端口开放还蛮多，如下图：<br>
+<img src="https://ca3tie1.github.io/post-images/1589715306626.jpg" alt="" loading="lazy"><br>
+最后上RMI远程代码执行漏洞拿下该服务器权限，打到第一个内网权限，但可惜是该机器无法出网，要深入还需要在车库继续蹲守。<br>
+<img src="https://ca3tie1.github.io/post-images/1589715616784.jpg" alt="" loading="lazy"><br>
+经过两天的内网横向移动，陆续在内网中拿了几个机器权限，但都无法出网，信息收集也有限。好点的就是中途摸到了两个可以出网路由器权限，终于可以不用蹲在车库了，膀胱也终于可以轻松了。</p>
+<h2 id="真的通不到办公网">真的通不到办公网？</h2>
+<p>由于从车库WiFi信号打入的内网环境还不处于目标办公内网环境网段，而且时间有限。中途还和目标相关负责人有沟通，以便确定WiFi网络环境是否有和办公网络环境做完全隔离，以免浪费时间。得到的答复有点模拟两可，又肯定的说无法通道办公内网，最多就是旁路什么的有上网行为管理系统之类的设备。当时思路是既然有上网行为管理系统之类的设备那肯定是所有的线路都要走该设备过的了，能拿下该设备权限也能通各个隔离区域的网络了。最终结论是他们自己也不确定是否有完全隔离，而且也无需拿设备权限，直接搞定一个Win7的权限后就可以通到办公内网了(而且该机器还可以出网)，如下图：<br>
+<img src="https://ca3tie1.github.io/post-images/1589716987661.jpg" alt="" loading="lazy"></p>
+<h1 id="0x02-总结">0x02 总结</h1>
+<p>有了目标办公内网权限后为了方便团队是到目标办公网实地做的内网渗透，实际发现办公网给的权限还不如从WiFi打入的那个机器权限大，开发测试网段办公内网无法直通，那个机器还能直通无阻。最后的内网渗透就和往常的渗透差不多了，内网中各种弱口令，上开发测试服务器各种信息搜集和漏洞挖掘，然后在线上目标上利用。这里目标做得比较好的一个地方是，所有线上应用服务器虽然处在同一网段，但互相之间只允许了http的通讯，像3389,22这些端口都不通，使得想一锅端掉线上服务器的想法泡汤，只得想法更深一步渗透，把目标转向虚拟化服务器或者是搞定运维或堡垒机之类的设备了。</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[一条被empty函数终结的利用链]]></title>
         <id>https://ca3tie1.github.io/post/0day-end-with-empty-function/</id>
@@ -1025,15 +1049,6 @@ Enjoy!</p>
 }
 </code></pre>
 <p>Enjoy! 最后再次感谢作者开发如此好用的工具！感谢Virink，后续可能会上架该功能。有疑问欢迎来讨论：https://github.com/AntSwordProject/antSword/issues/237</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[New beginning]]></title>
-        <id>https://ca3tie1.github.io/post/new-beginning/</id>
-        <link href="https://ca3tie1.github.io/post/new-beginning/">
-        </link>
-        <updated>2020-03-21T16:52:34.000Z</updated>
-        <content type="html"><![CDATA[<p>之前因比较喜欢csdn 的markdown编辑器，偶尔用来记录些东西，但是最近才发现文章审查越来越严，而且速度也慢。所以准备改到GitHub Pages来建一个，准备以后多记录一些日常技术研究。</p>
 ]]></content>
     </entry>
 </feed>
