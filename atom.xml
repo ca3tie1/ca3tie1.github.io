@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://ca3tie1.github.io</id>
     <title>Castiel&apos;s Blog</title>
-    <updated>2020-05-17T12:23:33.280Z</updated>
+    <updated>2020-05-17T12:25:19.711Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://ca3tie1.github.io"/>
     <link rel="self" href="https://ca3tie1.github.io/atom.xml"/>
@@ -12,8 +12,8 @@
     <rights>All rights reserved 2020, Castiel&apos;s Blog</rights>
     <entry>
         <title type="html"><![CDATA[记一次从车库到核心网段的渗透之路]]></title>
-        <id>https://ca3tie1.github.io/post/ji-yi-ci-cong-che-ku-dao-he-xin-wang-duan-de-shen-tou-zhi-lu/</id>
-        <link href="https://ca3tie1.github.io/post/ji-yi-ci-cong-che-ku-dao-he-xin-wang-duan-de-shen-tou-zhi-lu/">
+        <id>https://ca3tie1.github.io/post/On-site-pentest/</id>
+        <link href="https://ca3tie1.github.io/post/On-site-pentest/">
         </link>
         <updated>2020-05-17T04:15:22.000Z</updated>
         <content type="html"><![CDATA[<h1 id="0x00-前言">0x00 前言</h1>
