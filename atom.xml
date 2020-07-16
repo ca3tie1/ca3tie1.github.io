@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://ca3tie1.github.io</id>
     <title>Castiel&apos;s Blog</title>
-    <updated>2020-05-17T12:25:19.711Z</updated>
+    <updated>2020-07-16T09:35:55.335Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://ca3tie1.github.io"/>
     <link rel="self" href="https://ca3tie1.github.io/atom.xml"/>
@@ -10,6 +10,34 @@
     <logo>https://ca3tie1.github.io/images/avatar.png</logo>
     <icon>https://ca3tie1.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, Castiel&apos;s Blog</rights>
+    <entry>
+        <title type="html"><![CDATA[使用IDEA远程调试已部署的Tomcat应用]]></title>
+        <id>https://ca3tie1.github.io/post/shi-yong-idea-yuan-cheng-diao-shi-yi-bu-shu-de-tomcat-ying-yong/</id>
+        <link href="https://ca3tie1.github.io/post/shi-yong-idea-yuan-cheng-diao-shi-yi-bu-shu-de-tomcat-ying-yong/">
+        </link>
+        <updated>2020-07-16T09:03:30.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="0x00-写在前面">0x00 写在前面</h1>
+<p>在做代码审计的时候经常会遇到直接打包网站到本地搭建环境运行，但由于打包下的网站都是编译好了的，没有源码。需要调试的话得借助IDEA远程调试功能调试运行中的网站。</p>
+<h1 id="0x01-配置tomcat">0x01 配置Tomcat</h1>
+<p>在开启调试之前需要确定目标网站在本地的环境中能正常运行起来，剩下的就需要开启Tomcat的调试模式。实际上在Tomcat中主要启动脚本为catalina.bat或者catalina.sh，startup脚本也是调用该脚本来启动应用程序的。而且在Tomcat中已内置远程调试模式，不需要自己手动设置，如下图：</p>
+<figure data-type="image" tabindex="1"><img src="https://ca3tie1.github.io/post-images/1594890893118.jpg" alt="" loading="lazy"></figure>
+<p>我们只需执行<code>catalina.bat jpda start</code>命令即可开启调试模式，正常启动后会看到<code>Listening for transport dt_socket at address: 8000</code>的字样。Tomcat默认是在本地监听8000端口，可以在catalina中更改，如下图便是正常开启远程调试模式：</p>
+<figure data-type="image" tabindex="2"><img src="https://ca3tie1.github.io/post-images/1594891085249.jpg" alt="" loading="lazy"></figure>
+<h1 id="0x02-配置idea">0x02 配置IDEA</h1>
+<p>在IDEA中新建一个项目，然后点击文件-&gt;项目结构-&gt;库，点击加号添加Java源文件<br>
+<img src="https://ca3tie1.github.io/post-images/1594891535224.jpg" alt="" loading="lazy"><br>
+路径选择在运行的网站的classes目录，添加成功后可以在项目结构中看到所以的class了，如下图：<br>
+<img src="https://ca3tie1.github.io/post-images/1594891698835.jpg" alt="" loading="lazy"><br>
+然后点下图所示位置添加一个debug的配置：<br>
+<img src="https://ca3tie1.github.io/post-images/1594891813158.jpg" alt="" loading="lazy"><br>
+点击+号添加一个远程的Tomcat配置，如下图：<br>
+<img src="https://ca3tie1.github.io/post-images/1594891895030.jpg" alt="" loading="lazy"><br>
+命名随意，如下图所示：<br>
+<img src="https://ca3tie1.github.io/post-images/1594892000461.jpg" alt="" loading="lazy"><br>
+然后在启动/连接选项中选择Debug，然后下方端口填写Tomcat调试模式监听的端口8000，点击应用。<br>
+最后在需要下断点的位置打上断点，启动调试即可。</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[记一次从车库到核心网段的渗透之路]]></title>
         <id>https://ca3tie1.github.io/post/On-site-pentest/</id>
@@ -976,79 +1004,6 @@ function write_config_file($path, $file, $name, $input, $is_serial = true, $is_a
 再在<code>loop</code>后面添加<code>End If:</code></p>
 <p><img src="https://img-blog.csdnimg.cn/20191218214436631.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0NhM3RpZTE=,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述" loading="lazy"><br>
 Enjoy!</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[蚁剑自定义数据目录实现跨平台数据共享]]></title>
-        <id>https://ca3tie1.github.io/post/yi-jian-zi-ding-yi-shu-ju-mu-lu-shi-xian-kua-ping-tai-shu-ju-gong-xiang/</id>
-        <link href="https://ca3tie1.github.io/post/yi-jian-zi-ding-yi-shu-ju-mu-lu-shi-xian-kua-ping-tai-shu-ju-gong-xiang/">
-        </link>
-        <updated>2020-03-21T16:58:25.000Z</updated>
-        <content type="html"><![CDATA[<p><ul class="markdownIt-TOC">
-<li><a href="#%E5%89%8D%E8%A8%80">前言</a>
-<ul>
-<li><a href="#0x1">0x1</a></li>
-<li><a href="#0x2">0x2</a></li>
-<li><a href="#0x3">0x3</a>
-<ul>
-<li><a href="#%E6%9B%B4%E6%94%B9%E6%95%B0%E6%8D%AE%E5%BA%93%E8%B7%AF%E5%BE%84">更改数据库路径</a></li>
-<li><a href="#%E6%9B%B4%E6%94%B9%E7%BC%96%E7%A0%81%E5%99%A8%E5%90%8C%E6%AD%A5">更改编码器同步</a></li>
-</ul>
-</li>
-<li><a href="#%E7%BB%93%E8%AF%AD">结语</a></li>
-</ul>
-</li>
-<li><a href="#virink%E6%8F%90%E4%BE%9B%E5%AE%8C%E7%BE%8E%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88-%E6%84%9F%E8%B0%A2">Virink提供完美解决方案 感谢</a></li>
-</ul>
-</p>
-<h1 id="前言">前言</h1>
-<p>中国蚁剑是一款开源的跨平台网站管理工具，它主要面向于合法授权的渗透测试安全人员以及进行常规操作的网站管理员。任何人不得将其用于非法用途以及盈利等目的，否则后果自行承担！</p>
-<h2 id="0x1">0x1</h2>
-<p>蚁剑作为一款致敬菜刀的工具，可说青出于蓝而胜于蓝。菜刀在2016年更新过一个最新版本，可以实现自定义配置文件的方式来绕过WAF的功能，但实际测试和应用中发现还是存在不少bug。蚁剑这款工具在刚面世的时候有接触过，后来貌似因为一些政策性的原因貌似作者开发的一款实时上线的 XSS 盲打平台也开源并停止了更新，后来就没有关注了。直到最近在一些项目中遇到WAF，才想起来用蚁剑试试。蚁剑使用教程可以参考https://github.com/AntSwordProject/和官方文档https://doc.u0u.us/。</p>
-<h2 id="0x2">0x2</h2>
-<p>在实际渗透测试过程中我们往往会在不同的平台上使用蚁剑(如在windows和kali)，也有可能在不通的地方使用(如在宿主机和虚拟机中)。要想在不同的平台、不同的地方共享使用一个蚁剑的数据用copy方式拷来拷去比较麻烦，最简单的方式就是使用cloud同步蚁剑数据库以及一些相关数据。这里先需要找到蚁剑数据存储位置，在目前最新版本中蚁剑保存shell信息的数据库位于<code>antSword-master\antData\db.ant</code>中，是以json格式存储。<br>
-在<code>antSword-master\antData\</code>下还依次存放了临时文件目录<code>.temp</code>，缓存目录<code>cache</code>，编码器目录<code>encoders</code>，插件目录<code>plugins</code>，我们只需要把<code>antData</code>整个目录数据同步到云，然后在蚁剑中更改数据配置路径指向同步文件夹，这样就可以实现在异地共享使用同一个蚁剑数据了。这里我使用的是微软的OneDrive来实现文件同步，OneDrive可以实现异地实时同步，但缺点是已被墙，要使用请先翻墙（这里鄙视一下）或者使用其他的云同步系统。</p>
-<h2 id="0x3">0x3</h2>
-<h3 id="更改数据库路径">更改数据库路径</h3>
-<p>首先更改数据存储目录，在<code>antSword-master\modules\config.js</code> 文件<code>20</code> 行找到<code>this.basePath = path.join(process.env.AS_WORKDIR, 'antData')</code> 将<code>process.env.AS_WORKDIR</code>更改为OneDrive的路径，一般默认是<code>C:\Users\用户名\OneDrive\</code>  我这里是<code>C:\\Users\\Castiel\\OneDrive\\</code> 注意目录分隔符要使用两个''，如图所示<br>
-<img src="https://img-blog.csdnimg.cn/20191217102437700.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0NhM3RpZTE=,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述" loading="lazy"><br>
-然后我们再把<code>antSword-master\antData</code> 整个文件夹copy到<code>C:\Users\Castiel\OneDrive\</code> 下，然后在另外一台电脑上安装OneDrive，登录账户，你会发现<code>antData</code>目录会自动同步到该电脑上。最后copy蚁剑到该电脑上，同样更改<code>antSword-master\modules\config.js</code> 20行数据存储目录为当前电脑的OneDrive目录，然后重启蚁剑，这样完成了数据共享，在其中任意一个地方添加个shell，再去另外一地方重启蚁剑看看效果。</p>
-<h3 id="更改编码器同步">更改编码器同步</h3>
-<p>以上操作只能同步shell数据库和缓存等一些基本数据，实际测试编码器还不能同步，我们还需要更改编码器路径设置。找到<code>antSword-master\source\app.entry.js</code>文件<code>177</code>行和<code>232</code>行对应将<code>remote.process.env.AS_WORKDIR</code> 换成<code>C:\\Users\\Castiel\\OneDrive\\</code>。<br>
-然后再找到<code>antSword-master\source\modules\settings\encoders.js</code>文件中查找<code>remote.process.env.AS_WORKDIR</code> (共8处) 并全部替换成<code>C:\\Users\\Castiel\\OneDrive\\</code> 如此编码器也可以实现数据共享了。</p>
-<h2 id="结语">结语</h2>
-<p>在更改的变量 <code>process.env.AS_WORKDIR</code> 实际为AntSword-Loader配置的AntSword工作目录，该配置信息保存在AntSword-Loader目录下的<code>resources/.antSword.json</code>文件中，内容如下<code>{&quot;workdir&quot;:&quot;D:\\Soft\\AntSword\\antSword-master&quot;}</code>。由于AntSword-Loader并未开源，不知道<code>process.env.AS_WORKDIR</code> 中的<code>AS_WORKDIR</code>变量名是不是根据workdir键值名来定义的，若是如此的话我们可以在<code>resources/.antSword.json</code>中添加一个键(例如datadir)用于指定<code>antData</code>路径，然后在蚁剑中以<code>process.env.AS_DATADIR</code>的方式来调用，如此在AntSword-Loader中自定义路径，一蚁剑中替掉相应变量就方便多了。</p>
-<h1 id="virink提供完美解决方案-感谢">Virink提供完美解决方案 感谢</h1>
-<p>感谢<a href="https://www.virzz.com/">Virink</a>大神的指点，通过新增环境变量 AS_DATADIR 自定义数据目录路径，另外还需要多更改两个文件内容，如下：</p>
-<p><code>modules\config.js</code> 文件<code>20</code>行更改为<code>this.basePath = path.join(process.env.AS_DATADIR ? process.env.AS_DATADIR : process.env.AS_WORKDIR, 'antData');</code></p>
-<p><code>source\app.entry.js</code> 文件 <code>177</code>  <code>230</code>行 把<code>process.env.AS_WORKDIR</code> 改成 <code>remote.process.env.AS_DATADIR</code></p>
-<p><code>source\core\base.js</code> 文件 <code>77</code> 行 把<code>remote.process.env.AS_WORKDIR</code> 改成 <code>remote.process.env.AS_DATADIR</code></p>
-<p><code>source\modules\filemanager\index.js</code> 文件 <code>543</code> 行 把<code>remote.process.env.AS_WORKDIR</code> 改成 <code>remote.process.env.AS_DATADIR</code></p>
-<p><code>source\modules\settings\encoders.js</code> 文件中8处 <code>remote.process.env.AS_WORKDIR</code> 改成 <code>remote.process.env.AS_DATADIR</code></p>
-<p>改完以上后需要更改加载器源码，这里需要安装nodjes环境，然后使用npm全局安装asar模块，安装命令</p>
-<p><code>npm install -g asar</code></p>
-<p>然后来到蚁剑加载器<code>resources</code>目录下执行以下命令解压asar包</p>
-<p><code>asar e electron.asar electron</code></p>
-<p>解压完成后打开<code>resources\electron\browser\init.js</code> 在<code>138</code> 行添加如下代码：</p>
-<pre><code class="language-javascript">// 如果配置数据存储目录，则加载自定义的路径，否则使用工作目录
-  var AS_DATADIR = AS_CONFIG['datadir'];
-  if ((typeof AS_DATADIR === 'string') &amp;&amp; AS_DATADIR.length &gt; 0 &amp;&amp; fs.existsSync(AS_WORKDIR)) {
-    process.env.AS_DATADIR = AS_DATADIR;
-  } else {
-    process.env.AS_DATADIR = AS_WORKDIR;
-  }
-</code></pre>
-<p>如图：<br>
-<img src="https://img-blog.csdnimg.cn/20191217161529803.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0NhM3RpZTE=,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述" loading="lazy"><br>
-然后删除之前的<code>electron.asar</code>文件，执行命令从新打包：</p>
-<p><code>asar p electron electron.asar</code></p>
-<p>最后更改<code>resources\.antSword.json</code> 添加<code>datadir</code> 路径不含antData Windows注意目录分隔符为两个<code>\</code></p>
-<pre><code class="language-JSON">{
-    &quot;workdir&quot;: &quot;/path/to/src/&quot;,
-    &quot;datadir&quot;: &quot;/path/to/antData/&quot;
-}
-</code></pre>
-<p>Enjoy! 最后再次感谢作者开发如此好用的工具！感谢Virink，后续可能会上架该功能。有疑问欢迎来讨论：https://github.com/AntSwordProject/antSword/issues/237</p>
 ]]></content>
     </entry>
 </feed>
