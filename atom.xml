@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://ca3tie1.github.io</id>
     <title>Castiel&apos;s Blog</title>
-    <updated>2020-07-16T09:35:55.335Z</updated>
+    <updated>2020-09-01T03:33:47.884Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://ca3tie1.github.io"/>
     <link rel="self" href="https://ca3tie1.github.io/atom.xml"/>
@@ -10,6 +10,175 @@
     <logo>https://ca3tie1.github.io/images/avatar.png</logo>
     <icon>https://ca3tie1.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, Castiel&apos;s Blog</rights>
+    <entry>
+        <title type="html"><![CDATA[Openfire加密解密]]></title>
+        <id>https://ca3tie1.github.io/post/openfire-jia-mi-jie-mi/</id>
+        <link href="https://ca3tie1.github.io/post/openfire-jia-mi-jie-mi/">
+        </link>
+        <updated>2020-09-01T02:30:49.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="0x00-写在前面">0x00 写在前面</h1>
+<p>前几天渗透测试过程中遇到了个Openfire弱口令，通过后台管理系统的插件功能部署了个shell，获取了服务器权限。由于之前在后台可以看到数据库连接信息是使用MSSQL，且用户是sa，所以在后续信息搜集时候打算把sa密码搜集起来，但在查看<code>openfire.xml</code>的时候发现数据库账号密码加密了，如下所示：</p>
+<figure data-type="image" tabindex="1"><img src="https://ca3tie1.github.io/post-images/1598928366972.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="2"><img src="https://ca3tie1.github.io/post-images/1598928082465.png" alt="" loading="lazy"></figure>
+<center>数据库使用sa</center>
+<h1 id="0x01-分析">0x01 分析</h1>
+<p>数据库连接字符串加密这种方式也只是稍微提高了下门槛而已，实际上应用程序在连接数据库的时候是需要提供明文账号密码的，这也就意味着应用在连接数据库之前必定要先解密。于是直接把服务器上的Openfire打包到本地分析下，找到解密相关函数然后自己写个方法调用即可。<br>
+为了快速定位对于的解密功能，我决定从URL路由开始，因为在后台的<code>server-db.jsp</code>页面可以查看数据库连接信息，该页面展示的信息中数据库账号是经过解密的，所以该页面的后端代码一定有调用对象的解密模块。Openfire的后台管理功能基本都是以<code>plugins</code>的方式，都位于<code>/plugins/</code>下，我们自己安装的也在该目录下。对应找到admin目录即是后台管理功能插件，在其<code>webapp/WEB-INF/web.xml</code>文件中可以找到<code>/server-db.jsp</code>路由的<code>servlet-mapping</code>为<code>org.jivesoftware.openfire.admin.server_002ddb_jsp</code>类，如下图所示：</p>
+<p><img src="https://ca3tie1.github.io/post-images/1598929360769.png" alt="" loading="lazy"><br>
+跟进对应代码：</p>
+<pre><code class="language-java">con = DbConnectionManager.getConnection();
+        DatabaseMetaData metaData = con.getMetaData();
+        out.write(&quot;\n\n&lt;p&gt;\n&quot;);
+        if (_jspx_meth_fmt_005fmessage_005f1(_jspx_page_context))
+          return; 
+        out.write(&quot;\n&lt;/p&gt;\n\n&lt;div class=\&quot;jive-table\&quot;&gt;\n&lt;table cellpadding=\&quot;0\&quot; cellspacing=\&quot;0\&quot; border=\&quot;0\&quot; width=\&quot;100%\&quot;&gt;\n&lt;thead&gt;\n    &lt;tr&gt;\n        &lt;th colspan=\&quot;2\&quot;&gt;&quot;);
+        if (_jspx_meth_fmt_005fmessage_005f2(_jspx_page_context))
+          return; 
+        out.write(&quot;&lt;/th&gt;\n    &lt;/tr&gt;\n&lt;/thead&gt;\n&lt;tbody&gt;\n    &lt;tr&gt;\n        &lt;td class=\&quot;c1\&quot;&gt;\n            &quot;);
+        if (_jspx_meth_fmt_005fmessage_005f3(_jspx_page_context))
+          return; 
+        out.write(&quot;\n        &lt;/td&gt;\n        &lt;td class=\&quot;c2\&quot;&gt;\n            &quot;);
+        out.print(metaData.getDatabaseProductName());
+        out.write(&quot;\n            &quot;);
+        out.print(metaData.getDatabaseProductVersion());
+        out.write(&quot;\n        &lt;/td&gt;\n    &lt;/tr&gt;\n    &lt;tr&gt;\n        &lt;td class=\&quot;c1\&quot;&gt;\n            &quot;);
+        if (_jspx_meth_fmt_005fmessage_005f4(_jspx_page_context))
+          return; 
+        out.write(&quot;\n        &lt;/td&gt;\n        &lt;td class=\&quot;c2\&quot;&gt;\n            &quot;);
+        out.print(metaData.getDriverName());
+        out.write(&quot;\n        &lt;/td&gt;\n    &lt;/tr&gt;\n    &lt;tr&gt;\n        &lt;td class=\&quot;c1\&quot;&gt;\n             &quot;);
+        if (_jspx_meth_fmt_005fmessage_005f5(_jspx_page_context))
+          return; 
+</code></pre>
+<p>可见页面展示数据来源于<code>DbConnectionManager</code>类，该类位于<code>org.jivesoftware.database</code>下，该包则位于openfire的lib目录。继续反编译lib目录下的<code>openfire.jar</code>文件找到对应类的<code>getConnection</code>方法，代码如下：</p>
+<pre><code class="language-java">private static void ensureConnectionProvider() {
+    if (connectionProvider != null)
+      return; 
+    synchronized (providerLock) {
+      if (connectionProvider != null)
+        return; 
+      String className = JiveGlobals.getXMLProperty(&quot;connectionProvider.className&quot;);
+      if (className != null) {
+        try {
+          Class&lt;ConnectionProvider&gt; conClass = ClassUtils.forName(className);
+          setConnectionProvider(conClass.newInstance());
+        } catch (Exception e) {
+          Log.warn(&quot;Failed to create the connection provider specified by connectionProvider.className. Using the default pool.&quot;, e);
+          setConnectionProvider(new DefaultConnectionProvider());
+        } 
+      } else {
+        setConnectionProvider(new DefaultConnectionProvider());
+      } 
+    } 
+  }
+  
+  public static Connection getConnection() throws SQLException {
+    ensureConnectionProvider();
+    Integer currentRetryCount = Integer.valueOf(0);
+    Integer maxRetries = Integer.valueOf(JiveGlobals.getXMLProperty(&quot;database.maxRetries&quot;, 10));
+    Integer retryWait = Integer.valueOf(JiveGlobals.getXMLProperty(&quot;database.retryDelay&quot;, 250));
+    SQLException lastException = null;
+    do {
+      try {
+        Connection con = connectionProvider.getConnection();
+        if (con != null) {
+          if (!profilingEnabled)
+            return con; 
+          return new ProfiledConnection(con);
+        } 
+      } catch (SQLException e) {
+        lastException = e;
+        Log.info(&quot;Unable to get a connection from the database pool (attempt &quot; + currentRetryCount + &quot; out of &quot; + maxRetries + &quot;).&quot;, e);
+      } 
+      try {
+        Thread.sleep(retryWait.intValue());
+      } catch (Exception e) {}
+      Integer integer1 = currentRetryCount, integer2 = currentRetryCount = Integer.valueOf(currentRetryCount.intValue() + 1);
+    } while (currentRetryCount.intValue() &lt;= maxRetries.intValue());
+    throw new SQLException(&quot;ConnectionManager.getConnection() failed to obtain a connection after &quot; + currentRetryCount + &quot; retries. &quot; + &quot;The exception from the last attempt is as follows: &quot; + lastException);
+  }
+</code></pre>
+<p>在<code>getConnection</code>中首先调用了<code>ensureConnectionProvider</code>方法，在<code>ensureConnectionProvider</code>方法中从<code>openfire.xml</code>文档中加载<code>connectionProvider.className</code>节点值来实例化数据库连接类。这里值为<code>org.jivesoftware.database.DefaultConnectionProvider</code>，继续跟进该类。</p>
+<pre><code class="language-java">
+  private void loadProperties() {
+    this.driver = JiveGlobals.getXMLProperty(&quot;database.defaultProvider.driver&quot;);
+    this.serverURL = JiveGlobals.getXMLProperty(&quot;database.defaultProvider.serverURL&quot;);
+    this.username = JiveGlobals.getXMLProperty(&quot;database.defaultProvider.username&quot;);
+    this.password = JiveGlobals.getXMLProperty(&quot;database.defaultProvider.password&quot;);
+    String minCons = JiveGlobals.getXMLProperty(&quot;database.defaultProvider.minConnections&quot;);
+    String maxCons = JiveGlobals.getXMLProperty(&quot;database.defaultProvider.maxConnections&quot;);
+    String conTimeout = JiveGlobals.getXMLProperty(&quot;database.defaultProvider.connectionTimeout&quot;);
+    this.testSQL = JiveGlobals.getXMLProperty(&quot;database.defaultProvider.testSQL&quot;, DbConnectionManager.getTestSQL(this.driver));
+    this.testBeforeUse = Boolean.valueOf(JiveGlobals.getXMLProperty(&quot;database.defaultProvider.testBeforeUse&quot;, false));
+    this.testAfterUse = Boolean.valueOf(JiveGlobals.getXMLProperty(&quot;database.defaultProvider.testAfterUse&quot;, false));
+    Log.info(&quot;dirver:{}&quot;, this.driver);
+    Log.info(&quot;serverUrl:{}&quot;, this.serverURL);
+    Log.info(&quot;username:{}&quot;, this.username);
+    Log.info(&quot;password:{}&quot;, this.password);
+    if (this.serverURL != null &amp;&amp; this.serverURL.contains(&quot;amp;&quot;))
+      this.serverURL = this.serverURL.replace(&quot;amp;&quot;, &quot;&quot;); 
+    System.out.println(&quot;driver=&quot; + this.driver + &quot;,serverUrl=&quot; + this.serverURL + &quot;,username=&quot; + this.username + &quot;,password=&quot; + this.password);
+    this.mysqlUseUnicode = Boolean.valueOf(JiveGlobals.getXMLProperty(&quot;database.mysql.useUnicode&quot;)).booleanValue();
+    try {
+      if (minCons != null)
+        this.minConnections = Integer.parseInt(minCons); 
+      if (maxCons != null)
+        this.maxConnections = Integer.parseInt(maxCons); 
+      if (conTimeout != null)
+        this.connectionTimeout = Double.parseDouble(conTimeout); 
+    } catch (Exception e) {
+      Log.error(&quot;Error: could not parse default pool properties. Make sure the values exist and are correct.&quot;, e);
+    } 
+  }
+</code></pre>
+<p>在该类的<code>loadProperties</code>方法中可见从xml文件读取账号密码信息，继续跟进<code>JiveGlobals.getXMLProperty</code>，最终在<code>XMLProperties</code>类的<code>getProperty</code>方法中找到对应的解密操作，代码如下：</p>
+<pre><code class="language-java">public synchronized String getProperty(String name, boolean ignoreEmpty) {
+    String value = this.propertyCache.get(name);
+    if (value != null)
+      return value; 
+    String[] propName = parsePropertyName(name);
+    Element element = this.document.getRootElement();
+    for (String aPropName : propName) {
+      element = element.element(aPropName);
+      if (element == null)
+        return null; 
+    } 
+    value = element.getTextTrim();
+    if (ignoreEmpty &amp;&amp; &quot;&quot;.equals(value))
+      return null; 
+    if (JiveGlobals.isPropertyEncrypted(name)) {
+      Attribute encrypted = element.attribute(&quot;encrypted&quot;);
+      if (encrypted != null) {
+        value = JiveGlobals.getPropertyEncryptor().decrypt(value);
+      } else {
+        Log.info(&quot;Rewriting XML property &quot; + name + &quot; as an encrypted value&quot;);
+        setProperty(name, value);
+      } 
+    } 
+    this.propertyCache.put(name, value);
+    return value;
+  }
+</code></pre>
+<p>该方法在加载xml文件信息的时候会检查节点是否有<code>encrypted</code>属性，如果有则调用<code>JiveGlobals.getPropertyEncryptor().decrypt</code>，继续跟进<code>getPropertyEncryptor</code>方法：</p>
+<pre><code class="language-java">  public static Encryptor getPropertyEncryptor() {
+    if (securityProperties == null)
+      loadSecurityProperties(); 
+    if (propertyEncryptor == null) {
+      String algorithm = securityProperties.getProperty(&quot;encrypt.algorithm&quot;);
+      if (&quot;AES&quot;.equalsIgnoreCase(algorithm)) {
+        propertyEncryptor = new AesEncryptor(currentKey);
+      } else {
+        propertyEncryptor = new Blowfish(currentKey);
+      } 
+    } 
+    return propertyEncryptor;
+  }
+</code></pre>
+<p>该方法从<code>security.xml</code>文件中读取<code>encrypt.algorithm</code>节点值确定加密方式及加密使用的<code>key</code>，从目标的<code>security.xml</code>中看到并未使用<code>key</code>所以<code>currentKey</code>的值默认为<code>null</code>。</p>
+<h1 id="0x02-解密">0x02 解密</h1>
+<p>到此基本就搞清楚他自身的加密解密功能了，要解密就很简单了，可以直接加载<code>openfire.jar</code>到classpath，写个方法调用对应的<code>AesEncryptor</code>或是<code>Blowfish</code>并传入<code>key</code>即可，为了方便我把全部功能集中写了个简单的发布在GitHub上，地址：https://github.com/ca3tie1/OpenFireEncryptor</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[使用IDEA远程调试已部署的Tomcat应用]]></title>
         <id>https://ca3tie1.github.io/post/shi-yong-idea-yuan-cheng-diao-shi-yi-bu-shu-de-tomcat-ying-yong/</id>
@@ -983,27 +1152,6 @@ function write_config_file($path, $file, $name, $input, $is_serial = true, $is_a
 如果端口使用80的情况下，上线之后的通讯优先使用http方式，若想用纯dns通讯的话就需要在上线之后首先使用<code>mode</code> 指令切换至dns、dns-txt或者dns6模式。添加listener自定一个非80的端口上线之后所以的通讯都将默认采用dns方式，且不能使用mode切换成http模式。</p>
 <h1 id="0x05-结语">0x05 结语</h1>
 <p>以上均为我个人一些研究测试结论，有不到之处还请多多指正，Cobalt Strike确实是一个蛮强大的工具，还有很多内容和技术有待研究，本人也正在学习Java，争取早日通读内核代码。</p>
-]]></content>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[蚁剑ASP连SQLSERVER执行xp_cmdshell爆 驱动程序不支持所需的属性 解决办法]]></title>
-        <id>https://ca3tie1.github.io/post/yi-jian-asp-lian-sqlserver-zhi-xing-xp_cmdshell-bao-qu-dong-cheng-xu-bu-zhi-chi-suo-xu-de-shu-xing-jie-jue-ban-fa/</id>
-        <link href="https://ca3tie1.github.io/post/yi-jian-asp-lian-sqlserver-zhi-xing-xp_cmdshell-bao-qu-dong-cheng-xu-bu-zhi-chi-suo-xu-de-shu-xing-jie-jue-ban-fa/">
-        </link>
-        <updated>2020-03-21T16:59:26.000Z</updated>
-        <content type="html"><![CDATA[<p>使用ASP连接SQLSERVER sa执行xp_cmdshell爆“-2147217887:ODBC 驱动程序不支持所需的属性错误”。<br>
-<img src="https://img-blog.csdnimg.cn/20191218214310280.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0NhM3RpZTE=,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述" loading="lazy"><br>
-原因是在<code>source\core\asp\template\database\sqlserver.js</code>中执行SQL语句代码模板中使用Recordset对象的open方法来执行SQL语句，貌似是该方法不支持请求xp_cmdshell这种过程对象，具体我也不清楚，这里参考了下菜刀的方式解决。</p>
-<p>删除102、103行代码<br>
-<code>Set Rs=CreateObject(&quot;Adodb.Recordset&quot;): Rs.open &quot;&quot;&amp;bd(Request(&quot;${arg2}&quot;))&amp;&quot;&quot;,Conn,1,1:</code><br>
-更改为Connection对象的Execute方法直接执行<br>
-<code>Set Rs=Conn.Execute(&quot;&quot;&amp;bd(Request(&quot;${arg2}&quot;))&amp;&quot;&quot;):</code><br>
-为了防止执行一些返回recordset.Fields为0的命令（如开启xp_cmdshell的命令：EXEC sp_configure &quot;show advanced options&quot;,1）后面程序进入死循环的情况，这里还需要加一个if判断：<br>
-在<code>FN=Rs.Fields.Count-1:</code>的后面添加<br>
-<code>If FN=-1 Then: Response.Write HD&amp;&quot;Execute Successfully!&quot;&amp;CO&amp;RN: Else:</code><br>
-再在<code>loop</code>后面添加<code>End If:</code></p>
-<p><img src="https://img-blog.csdnimg.cn/20191218214436631.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L0NhM3RpZTE=,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述" loading="lazy"><br>
-Enjoy!</p>
 ]]></content>
     </entry>
 </feed>

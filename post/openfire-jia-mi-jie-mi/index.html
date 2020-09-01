@@ -1,0 +1,452 @@
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<title>Openfire加密解密 - Castiel&#39;s Blog</title>
+<link rel="shortcut icon" href="https://ca3tie1.github.io/favicon.ico">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.2.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.7.2/animate.min.css">
+<link rel="stylesheet" href="https://ca3tie1.github.io/media/css/tailwind.css">
+<link rel="stylesheet" href="https://ca3tie1.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Openfire加密解密 - Castiel&#39;s Blog - Atom Feed" href="https://ca3tie1.github.io/atom.xml">
+
+
+
+  <meta name="description" content="0x00 写在前面
+前几天渗透测试过程中遇到了个Openfire弱口令，通过后台管理系统的插件功能部署了个shell，获取了服务器权限。由于之前在后台可以看到数据库连接信息是使用MSSQL，且用户是sa，所以在后续信息搜集时候打算把sa密码..." />
+  <meta property="og:title" content="Openfire加密解密 - Castiel&#39;s Blog">
+  <meta property="og:description" content="0x00 写在前面
+前几天渗透测试过程中遇到了个Openfire弱口令，通过后台管理系统的插件功能部署了个shell，获取了服务器权限。由于之前在后台可以看到数据库连接信息是使用MSSQL，且用户是sa，所以在后续信息搜集时候打算把sa密码..." />
+  <meta property="og:type" content="articles">
+  <meta property="og:url" content="https://ca3tie1.github.io/post/openfire-jia-mi-jie-mi/" />
+  <meta property="og:image" content="https://ca3tie1.github.io/post-images/openfire-jia-mi-jie-mi.png">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:width" content="1200">
+  <meta name="twitter:title" content="Openfire加密解密 - Castiel&#39;s Blog">
+  <meta name="twitter:description" content="0x00 写在前面
+前几天渗透测试过程中遇到了个Openfire弱口令，通过后台管理系统的插件功能部署了个shell，获取了服务器权限。由于之前在后台可以看到数据库连接信息是使用MSSQL，且用户是sa，所以在后续信息搜集时候打算把sa密码...">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="canonical" href="https://ca3tie1.github.io/post/openfire-jia-mi-jie-mi/">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.css">
+
+  
+    <link rel="stylesheet" href="https://ca3tie1.github.io/media/css/prism-GrideaPreview.css">
+  
+
+  
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+  
+</head>
+
+<body>
+  <div class="antialiased flex flex-col min-h-screen" id="app">
+    <a href="https://ca3tie1.github.io" class="fixed top-0 left-0 mt-4 bg-black text-white dark:text-gray-700 dark:bg-yellow-50 dark:hover:bg-black dark:hover:text-white inline-flex p-2 pl-8 hover:text-gray-700 hover:bg-yellow-50 font-bold z-10 transition-fast animated fadeInLeft">
+      Castiel&#39;s Blog
+    </a>
+    <div class="max-w-4xl w-full mx-auto">
+      <div class="shadow-box bg-white dark:bg-gray-600 rounded-lg pt-32 md:pt-64 px-4 md:px-8 pb-8 animated fadeIn mb-8">
+        <h1 class="text-5xl font-semibold leading-normal pb-8 mb-8 border-b-8 border-gray-700">
+          Openfire加密解密
+        </h1>
+        
+          <img src="https://ca3tie1.github.io/post-images/openfire-jia-mi-jie-mi.png" alt="Openfire加密解密" class="block w-full mb-8">
+        
+        <div class="mb-8 flex flex-wrap">
+          <div class="text-gray-400 text-sm mr-4">2020-09-01 · 8 min read</div>
+          
+        </div>
+        <div data-v-4ba2f26e class="preview-container" v-pre>
+          <h1 id="0x00-写在前面">0x00 写在前面</h1>
+<p>前几天渗透测试过程中遇到了个Openfire弱口令，通过后台管理系统的插件功能部署了个shell，获取了服务器权限。由于之前在后台可以看到数据库连接信息是使用MSSQL，且用户是sa，所以在后续信息搜集时候打算把sa密码搜集起来，但在查看<code>openfire.xml</code>的时候发现数据库账号密码加密了，如下所示：</p>
+<figure data-type="image" tabindex="1"><img src="https://ca3tie1.github.io/post-images/1598928366972.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="2"><img src="https://ca3tie1.github.io/post-images/1598928082465.png" alt="" loading="lazy"></figure>
+<center>数据库使用sa</center>
+<h1 id="0x01-分析">0x01 分析</h1>
+<p>数据库连接字符串加密这种方式也只是稍微提高了下门槛而已，实际上应用程序在连接数据库的时候是需要提供明文账号密码的，这也就意味着应用在连接数据库之前必定要先解密。于是直接把服务器上的Openfire打包到本地分析下，找到解密相关函数然后自己写个方法调用即可。<br>
+为了快速定位对于的解密功能，我决定从URL路由开始，因为在后台的<code>server-db.jsp</code>页面可以查看数据库连接信息，该页面展示的信息中数据库账号是经过解密的，所以该页面的后端代码一定有调用对象的解密模块。Openfire的后台管理功能基本都是以<code>plugins</code>的方式，都位于<code>/plugins/</code>下，我们自己安装的也在该目录下。对应找到admin目录即是后台管理功能插件，在其<code>webapp/WEB-INF/web.xml</code>文件中可以找到<code>/server-db.jsp</code>路由的<code>servlet-mapping</code>为<code>org.jivesoftware.openfire.admin.server_002ddb_jsp</code>类，如下图所示：</p>
+<p><img src="https://ca3tie1.github.io/post-images/1598929360769.png" alt="" loading="lazy"><br>
+跟进对应代码：</p>
+<pre><code class="language-java">con = DbConnectionManager.getConnection();
+        DatabaseMetaData metaData = con.getMetaData();
+        out.write(&quot;\n\n&lt;p&gt;\n&quot;);
+        if (_jspx_meth_fmt_005fmessage_005f1(_jspx_page_context))
+          return; 
+        out.write(&quot;\n&lt;/p&gt;\n\n&lt;div class=\&quot;jive-table\&quot;&gt;\n&lt;table cellpadding=\&quot;0\&quot; cellspacing=\&quot;0\&quot; border=\&quot;0\&quot; width=\&quot;100%\&quot;&gt;\n&lt;thead&gt;\n    &lt;tr&gt;\n        &lt;th colspan=\&quot;2\&quot;&gt;&quot;);
+        if (_jspx_meth_fmt_005fmessage_005f2(_jspx_page_context))
+          return; 
+        out.write(&quot;&lt;/th&gt;\n    &lt;/tr&gt;\n&lt;/thead&gt;\n&lt;tbody&gt;\n    &lt;tr&gt;\n        &lt;td class=\&quot;c1\&quot;&gt;\n            &quot;);
+        if (_jspx_meth_fmt_005fmessage_005f3(_jspx_page_context))
+          return; 
+        out.write(&quot;\n        &lt;/td&gt;\n        &lt;td class=\&quot;c2\&quot;&gt;\n            &quot;);
+        out.print(metaData.getDatabaseProductName());
+        out.write(&quot;\n            &quot;);
+        out.print(metaData.getDatabaseProductVersion());
+        out.write(&quot;\n        &lt;/td&gt;\n    &lt;/tr&gt;\n    &lt;tr&gt;\n        &lt;td class=\&quot;c1\&quot;&gt;\n            &quot;);
+        if (_jspx_meth_fmt_005fmessage_005f4(_jspx_page_context))
+          return; 
+        out.write(&quot;\n        &lt;/td&gt;\n        &lt;td class=\&quot;c2\&quot;&gt;\n            &quot;);
+        out.print(metaData.getDriverName());
+        out.write(&quot;\n        &lt;/td&gt;\n    &lt;/tr&gt;\n    &lt;tr&gt;\n        &lt;td class=\&quot;c1\&quot;&gt;\n             &quot;);
+        if (_jspx_meth_fmt_005fmessage_005f5(_jspx_page_context))
+          return; 
+</code></pre>
+<p>可见页面展示数据来源于<code>DbConnectionManager</code>类，该类位于<code>org.jivesoftware.database</code>下，该包则位于openfire的lib目录。继续反编译lib目录下的<code>openfire.jar</code>文件找到对应类的<code>getConnection</code>方法，代码如下：</p>
+<pre><code class="language-java">private static void ensureConnectionProvider() {
+    if (connectionProvider != null)
+      return; 
+    synchronized (providerLock) {
+      if (connectionProvider != null)
+        return; 
+      String className = JiveGlobals.getXMLProperty(&quot;connectionProvider.className&quot;);
+      if (className != null) {
+        try {
+          Class&lt;ConnectionProvider&gt; conClass = ClassUtils.forName(className);
+          setConnectionProvider(conClass.newInstance());
+        } catch (Exception e) {
+          Log.warn(&quot;Failed to create the connection provider specified by connectionProvider.className. Using the default pool.&quot;, e);
+          setConnectionProvider(new DefaultConnectionProvider());
+        } 
+      } else {
+        setConnectionProvider(new DefaultConnectionProvider());
+      } 
+    } 
+  }
+  
+  public static Connection getConnection() throws SQLException {
+    ensureConnectionProvider();
+    Integer currentRetryCount = Integer.valueOf(0);
+    Integer maxRetries = Integer.valueOf(JiveGlobals.getXMLProperty(&quot;database.maxRetries&quot;, 10));
+    Integer retryWait = Integer.valueOf(JiveGlobals.getXMLProperty(&quot;database.retryDelay&quot;, 250));
+    SQLException lastException = null;
+    do {
+      try {
+        Connection con = connectionProvider.getConnection();
+        if (con != null) {
+          if (!profilingEnabled)
+            return con; 
+          return new ProfiledConnection(con);
+        } 
+      } catch (SQLException e) {
+        lastException = e;
+        Log.info(&quot;Unable to get a connection from the database pool (attempt &quot; + currentRetryCount + &quot; out of &quot; + maxRetries + &quot;).&quot;, e);
+      } 
+      try {
+        Thread.sleep(retryWait.intValue());
+      } catch (Exception e) {}
+      Integer integer1 = currentRetryCount, integer2 = currentRetryCount = Integer.valueOf(currentRetryCount.intValue() + 1);
+    } while (currentRetryCount.intValue() &lt;= maxRetries.intValue());
+    throw new SQLException(&quot;ConnectionManager.getConnection() failed to obtain a connection after &quot; + currentRetryCount + &quot; retries. &quot; + &quot;The exception from the last attempt is as follows: &quot; + lastException);
+  }
+</code></pre>
+<p>在<code>getConnection</code>中首先调用了<code>ensureConnectionProvider</code>方法，在<code>ensureConnectionProvider</code>方法中从<code>openfire.xml</code>文档中加载<code>connectionProvider.className</code>节点值来实例化数据库连接类。这里值为<code>org.jivesoftware.database.DefaultConnectionProvider</code>，继续跟进该类。</p>
+<pre><code class="language-java">
+  private void loadProperties() {
+    this.driver = JiveGlobals.getXMLProperty(&quot;database.defaultProvider.driver&quot;);
+    this.serverURL = JiveGlobals.getXMLProperty(&quot;database.defaultProvider.serverURL&quot;);
+    this.username = JiveGlobals.getXMLProperty(&quot;database.defaultProvider.username&quot;);
+    this.password = JiveGlobals.getXMLProperty(&quot;database.defaultProvider.password&quot;);
+    String minCons = JiveGlobals.getXMLProperty(&quot;database.defaultProvider.minConnections&quot;);
+    String maxCons = JiveGlobals.getXMLProperty(&quot;database.defaultProvider.maxConnections&quot;);
+    String conTimeout = JiveGlobals.getXMLProperty(&quot;database.defaultProvider.connectionTimeout&quot;);
+    this.testSQL = JiveGlobals.getXMLProperty(&quot;database.defaultProvider.testSQL&quot;, DbConnectionManager.getTestSQL(this.driver));
+    this.testBeforeUse = Boolean.valueOf(JiveGlobals.getXMLProperty(&quot;database.defaultProvider.testBeforeUse&quot;, false));
+    this.testAfterUse = Boolean.valueOf(JiveGlobals.getXMLProperty(&quot;database.defaultProvider.testAfterUse&quot;, false));
+    Log.info(&quot;dirver:{}&quot;, this.driver);
+    Log.info(&quot;serverUrl:{}&quot;, this.serverURL);
+    Log.info(&quot;username:{}&quot;, this.username);
+    Log.info(&quot;password:{}&quot;, this.password);
+    if (this.serverURL != null &amp;&amp; this.serverURL.contains(&quot;amp;&quot;))
+      this.serverURL = this.serverURL.replace(&quot;amp;&quot;, &quot;&quot;); 
+    System.out.println(&quot;driver=&quot; + this.driver + &quot;,serverUrl=&quot; + this.serverURL + &quot;,username=&quot; + this.username + &quot;,password=&quot; + this.password);
+    this.mysqlUseUnicode = Boolean.valueOf(JiveGlobals.getXMLProperty(&quot;database.mysql.useUnicode&quot;)).booleanValue();
+    try {
+      if (minCons != null)
+        this.minConnections = Integer.parseInt(minCons); 
+      if (maxCons != null)
+        this.maxConnections = Integer.parseInt(maxCons); 
+      if (conTimeout != null)
+        this.connectionTimeout = Double.parseDouble(conTimeout); 
+    } catch (Exception e) {
+      Log.error(&quot;Error: could not parse default pool properties. Make sure the values exist and are correct.&quot;, e);
+    } 
+  }
+</code></pre>
+<p>在该类的<code>loadProperties</code>方法中可见从xml文件读取账号密码信息，继续跟进<code>JiveGlobals.getXMLProperty</code>，最终在<code>XMLProperties</code>类的<code>getProperty</code>方法中找到对应的解密操作，代码如下：</p>
+<pre><code class="language-java">public synchronized String getProperty(String name, boolean ignoreEmpty) {
+    String value = this.propertyCache.get(name);
+    if (value != null)
+      return value; 
+    String[] propName = parsePropertyName(name);
+    Element element = this.document.getRootElement();
+    for (String aPropName : propName) {
+      element = element.element(aPropName);
+      if (element == null)
+        return null; 
+    } 
+    value = element.getTextTrim();
+    if (ignoreEmpty &amp;&amp; &quot;&quot;.equals(value))
+      return null; 
+    if (JiveGlobals.isPropertyEncrypted(name)) {
+      Attribute encrypted = element.attribute(&quot;encrypted&quot;);
+      if (encrypted != null) {
+        value = JiveGlobals.getPropertyEncryptor().decrypt(value);
+      } else {
+        Log.info(&quot;Rewriting XML property &quot; + name + &quot; as an encrypted value&quot;);
+        setProperty(name, value);
+      } 
+    } 
+    this.propertyCache.put(name, value);
+    return value;
+  }
+</code></pre>
+<p>该方法在加载xml文件信息的时候会检查节点是否有<code>encrypted</code>属性，如果有则调用<code>JiveGlobals.getPropertyEncryptor().decrypt</code>，继续跟进<code>getPropertyEncryptor</code>方法：</p>
+<pre><code class="language-java">  public static Encryptor getPropertyEncryptor() {
+    if (securityProperties == null)
+      loadSecurityProperties(); 
+    if (propertyEncryptor == null) {
+      String algorithm = securityProperties.getProperty(&quot;encrypt.algorithm&quot;);
+      if (&quot;AES&quot;.equalsIgnoreCase(algorithm)) {
+        propertyEncryptor = new AesEncryptor(currentKey);
+      } else {
+        propertyEncryptor = new Blowfish(currentKey);
+      } 
+    } 
+    return propertyEncryptor;
+  }
+</code></pre>
+<p>该方法从<code>security.xml</code>文件中读取<code>encrypt.algorithm</code>节点值确定加密方式及加密使用的<code>key</code>，从目标的<code>security.xml</code>中看到并未使用<code>key</code>所以<code>currentKey</code>的值默认为<code>null</code>。</p>
+<h1 id="0x02-解密">0x02 解密</h1>
+<p>到此基本就搞清楚他自身的加密解密功能了，要解密就很简单了，可以直接加载<code>openfire.jar</code>到classpath，写个方法调用对应的<code>AesEncryptor</code>或是<code>Blowfish</code>并传入<code>key</code>即可，为了方便我把全部功能集中写了个简单的发布在GitHub上，地址：https://github.com/ca3tie1/OpenFireEncryptor</p>
+
+        </div>
+        <!-- Share to Twitter, Weibo, Telegram -->
+        <div class="flex items-center">
+          <div class="mr-4 flex items-center">
+            <i class="ri-share-forward-line text-gray-500"></i>
+          </div>
+          <div class="px-4 cursor-pointer text-blue-500 hover:bg-blue-100 dark:hover:bg-gray-600 inline-flex" @click="shareToTwitter">
+            <i class="ri-twitter-line"></i>
+          </div>
+          <div class="px-4 cursor-pointer text-red-500 hover:bg-red-100 dark:hover:bg-gray-600 inline-flex" @click="shareToWeibo">
+            <i class="ri-weibo-line"></i>
+          </div>
+          <div class="px-4 cursor-pointer text-indigo-500 hover:bg-indigo-100 dark:hover:bg-gray-600 inline-flex" @click="shareToTelegram">
+            <i class="ri-telegram-line"></i>
+          </div>
+        </div>
+      </div>
+
+      
+
+      
+        <div id="vlaine-comment"></div>
+      
+
+      <footer class="py-12 text-center px-4 md:px-0" v-pre>
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+</footer>
+    </div>
+
+    <!-- TOC Container -->
+    <div class="fixed right-0 bottom-0 mb-16 mr-4 shadow w-8 h-8 rounded-full flex justify-center items-center z-10 cursor-pointer bg-white dark:bg-gray-500 dark:text-gray-200 hover:shadow-lg transition-all animated fadeInRight" @click="showToc = true">
+      <i class="ri-file-list-line"></i>
+    </div>
+
+    <div class="fixed right-0 top-0 bottom-0 overflow-y-auto w-64 bg-white dark:bg-gray-800 p-4 border-l border-gray-100 dark:border-gray-600 z-10 transition-fast" :class="{ '-mr-64': !showToc }">
+      <div class="flex mb-4 justify-end">
+        <div class="w-8 h-8 inline-flex justify-center items-center rounded-full cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition-fast" @click="showToc = false">
+          <i class="ri-close-line text-lg"></i>
+        </div>
+      </div>
+      <div class="post-toc-container">
+        <ul class="markdownIt-TOC">
+<li><a href="#0x00-%E5%86%99%E5%9C%A8%E5%89%8D%E9%9D%A2">0x00 写在前面</a></li>
+<li><a href="#0x01-%E5%88%86%E6%9E%90">0x01 分析</a></li>
+<li><a href="#0x02-%E8%A7%A3%E5%AF%86">0x02 解密</a></li>
+</ul>
+
+      </div>
+    </div>
+
+    <!-- Back to top -->
+    <div class="fixed right-0 bottom-0 mb-4 mr-4 shadow w-8 h-8 rounded-full flex justify-center items-center z-10 cursor-pointer bg-white hover:shadow-lg transition-all dark:bg-gray-500 dark:text-gray-200" @click="backToUp" v-show="scrolled">
+      <i class="ri-arrow-up-line"></i>
+    </div>
+  </div>
+
+  <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+  <!-- Background of PhotoSwipe. 
+        It's a separate element as animating opacity is faster than rgba(). -->
+  <div class="pswp__bg">
+  </div>
+  <!-- Slides wrapper with overflow:hidden. -->
+  <div class="pswp__scroll-wrap">
+    <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+    <div class="pswp__container">
+      <div class="pswp__item">
+      </div>
+      <div class="pswp__item">
+      </div>
+      <div class="pswp__item">
+      </div>
+    </div>
+    <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+    <div class="pswp__ui pswp__ui--hidden">
+      <div class="pswp__top-bar">
+        <!--  Controls are self-explanatory. Order can be changed. -->
+        <div class="pswp__counter">
+        </div>
+        <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+        <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+        <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+        <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+        <!-- element will get class pswp__preloader--active when preloader is running -->
+        <div class="pswp__preloader">
+          <div class="pswp__preloader__icn">
+            <div class="pswp__preloader__cut">
+              <div class="pswp__preloader__donut">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+        <div class="pswp__share-tooltip">
+        </div>
+      </div>
+      <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+      </button>
+      <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+      </button>
+      <div class="pswp__caption">
+        <div class="pswp__caption__center">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="https://ca3tie1.github.io/media/scripts/main.js"></script>
+
+  <!-- Code Highlight -->
+  
+    <script src="https://ca3tie1.github.io/media/prism.js"></script>
+    <script>
+      Prism.highlightAll()
+    </script>
+  
+
+  <script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+  <script>
+    //拿到预览框架，也就是上面的html代码
+    var pswpElement = document.querySelectorAll('.pswp')[0];
+    //定义图片数组变量
+    var imgitems;
+    /**
+    * 用于显示预览界面
+    * @param index 图片数组下标
+    */
+    function viewImg(index) {
+      //其它选项这里不做过多阐述，详情见官网
+      var pswpoptions = {
+        index: parseInt(index, 10), // 开始幻灯片索引。0是第一张幻灯片。必须是整数，而不是字符串。
+        bgOpacity: 0.7, // 背景透明度，0-1
+        maxSpreadZoom: 3, // 缩放级别，不要太大
+      };
+      //初始化并打开PhotoSwipe，pswpElement对应上面预览框架，PhotoSwipeUI_Default为皮肤，imgitems为图片数组，pswpoptions为选项
+      var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, imgitems, pswpoptions);
+      gallery.init()
+    }
+    /**
+    * 用于添加图片点击事件
+    * @param img 图片元素
+    * @param index 所属下标（在imgitems中的位置）
+    */
+    function addImgClick(img, index) {
+      img.onclick = function() {
+        viewImg(index)
+      }
+    }
+    /**
+    * 轮询所有图片，获取src、width、height等数据，加入imgitems，并给图片元素添加事件
+    * 最好在onload中执行该方法，本站因放在最底部，所以直接初始化
+    * 异步加载图片可在图片元素创建完成后调用此方法
+    */
+    function initImg() {
+      //重置图片数组
+      imgitems = [];
+      //查找class:markdown 下的所有img元素并遍历
+      var imgs = document.querySelectorAll('.markdown img');
+      for (var i = 0; i < imgs.length; i++) {
+        var img = imgs[i];
+        //本站相册初始为loading图片，真实图片放在data-src
+        var ds = img.getAttribute("data-src");
+        //创建image对象，用于获取图片宽高
+        var imgtemp = new Image();
+        //判断是否存在data-src
+        if (ds != null && ds.length > 0) {
+          imgtemp.src = ds
+        } else {
+          imgtemp.src = img.src
+        }
+        //判断是否存在缓存
+        if (imgtemp.complete) {
+          var imgobj = {
+            "src": imgtemp.src,
+            "w": imgtemp.width,
+            "h": imgtemp.height,
+          };
+          imgitems[i] = imgobj;
+          addImgClick(img, i);
+        } else {
+          console.log('进来了2')
+          imgtemp.index = i;
+          imgtemp.img = img;
+          imgtemp.onload = function() {
+            var imgobj = {
+              "src": this.src,
+              "w": this.width,
+              "h": this.height,
+            };
+            //不要使用push，因为onload前后顺序会不同
+            imgitems[this.index] = imgobj
+            //添加点击事件
+            addImgClick(this.img, this.index);
+          }
+        }
+      }
+    }
+    //初始化
+    initImg();
+  </script>
+  
+    <script type="application/javascript" src="https://unpkg.com/valine"></script>
+<script type="application/javascript">
+  new Valine({
+    el: '#vlaine-comment',
+    appId: 'Ok7dv2WeijvEtMKCFgXFt8HF-gzGzoHsz',
+    appKey: 'B9gSkwrqd6EYJOX722X89yoW',
+    pageSize: 10,
+    notify: true,
+    avatar: 'mp',
+    verify: true,
+    placeholder: '来都来了，不妨评论一下。',
+    visitor: true,
+    highlight: true,
+    recordIP: true,
+  })
+</script>
+  
+  
+</body>
+
+</html>
